@@ -1,12 +1,13 @@
 # CellMeter
 
 📡 **CellMeter** is a drone-based platform for measuring, storing, and visualizing **cellular signal quality** and **network performance**.  
-It polls a Teltonika OTD500 every second, stores telemetry locally in **InfluxDB** on the drone, and forwards it in **real time** to a ground station for Grafana dashboards and monitoring.
+
+It polls data from the **Teltonika OTD500 API**, including **GPS** and **altimeter** readings, stores it locally in InfluxDB Edge on the drone, and replicates it in real time to the InfluxDB instance on the ground station, which provides Grafana dashboards and monitoring.
 
 ---
 
 ## Features
-- Near real-time (1s) data collection from **Teltonika OTD500 JSON API**  
+- Near real-time (1s) data collection from **Teltonika OTD500 JSON API** and other sensors
 - Metrics: GPS, altitude, RSSI, RSRP, RSRQ, SINR, CID/PCI, download/upload speed  
 - **Session-based measuring** with unique IDs and timestamps  
 - Permanent storage of historical data (InfluxDB)  
