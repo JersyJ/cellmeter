@@ -1,7 +1,44 @@
 [project]
-name = "edge"
+name = "edgeservice"
 version = "0.1.0"
-description = "Add your description here"
+description = "Edge Service"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "fastapi[standard]>=0.119.0",
+    "pydantic-settings>=2.11.0",
+]
+
+[tool.uv]
+dev-dependencies = [
+    "ruff>=0.14.1",
+]
+
+[build-system]
+requires = ["uv_build>=0.8.14,<0.9.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "app"
+module-root = ""
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+indent-width = 4
+
+[tool.ruff.lint]
+extend-select = [
+    "C4", # flake8-comprehensions
+    "I", # isort
+    "F", # pyflakes
+    "N", # pep8-naming
+    "Q", # flake8-quotes
+    "SIM", # flake8-simplify
+    "UP", # pyupgrade
+    "W", # Warning
+    "YTT", # flake8-2020
+]
+
+[tool.ruff.lint.isort]
+known-third-party = ["fastapi", "pydantic", "starlette"]
