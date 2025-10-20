@@ -1,0 +1,22 @@
+version: '3'
+services:
+  # influxdb:
+  #   image: influxdb:2
+  #   volumes:
+  #     - ./influxdb_data:/var/lib/influxdb2
+  #   ports:
+  #     - "8086:8086"
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: unless-stopped
+    environment:
+      - GF_SERVER_ROOT_URL=http://my.grafana.server/
+      - GF_PLUGINS_PREINSTALL=grafana-clock-panel
+    ports:
+      - '3000:3000'
+    volumes:
+      - 'grafana_storage:/var/lib/grafana'
+volumes:
+  grafana_storage:

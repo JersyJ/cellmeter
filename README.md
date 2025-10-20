@@ -17,4 +17,8 @@ It polls data from the **Teltonika OTD500 API**, including **GPS** and **altimet
 
 ## Architecture
 
-![Architecture](architecture.drawio.svg)
+![Architecture](docs/architecture.svg)
+
+## Data Collection Strategy
+
+[Data Collection Strategy Documentation](docs/data-collection-strategy.md)
