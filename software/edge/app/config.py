@@ -16,7 +16,7 @@ import logging.config
 from functools import lru_cache
 from pathlib import Path
 
-from pydantic import BaseModel, SecretStr
+from pydantic import BaseModel, SecretStr, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 PROJECT_DIR = Path(__file__).parent.parent
@@ -26,21 +26,30 @@ class Teltonika(BaseModel):
     """Settings related to Teltonika API."""
 
     ip: str
-    user: str           = "admin"
+    user: str = "admin"
     password: SecretStr
 
 
 class Database(BaseModel):
     """Settings related to database connections."""
 
-    url: str 
+    url: str
     token: SecretStr
-    org: str           = "cellmeter-org"
-    bucket: str        = "raw-data"
+    org: str = "cellmeter-org"
+    bucket: str = "raw-data"
+
+
+class SessionDB(BaseModel):
+    """Settings related to the session database."""
+
+    path: Path = "/tmp/cellmeter_session.db"
+
 
 class Settings(BaseSettings):
-    teltonika: Teltonika
-    database: Database
+    teltonika: Teltonika = Field(default_factory=Teltonika)
+    database: Database = Field(default_factory=Database)
+    session_db: SessionDB = Field(default_factory=SessionDB)
+    log_level: str = "INFO"
 
     model_config = SettingsConfigDict(
         extra="ignore",
@@ -53,6 +62,7 @@ class Settings(BaseSettings):
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
     return Settings()  # type: ignore
+
 
 def logging_config(log_level: str) -> None:
     conf = {
@@ -80,5 +90,6 @@ def logging_config(log_level: str) -> None:
         },
     }
     logging.config.dictConfig(conf)
+
 
 logging_config(log_level=get_settings().log_level)

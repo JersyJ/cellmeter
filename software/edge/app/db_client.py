@@ -1,14 +1,15 @@
 from influxdb_client import InfluxDBClient, Point
 from influxdb_client.client.write_api import SYNCHRONOUS
-import os
 
-INFLUX_URL = os.getenv("INFLUX_URL_EDGE", "http://localhost:8086")
-INFLUX_TOKEN = os.getenv("INFLUX_TOKEN_EDGE") # The token for the local InfluxDB
-INFLUX_ORG = os.getenv("INFLUX_ORG", "cellmeter-org")
-INFLUX_BUCKET = os.getenv("INFLUX_BUCKET", "raw-data")
+from app.config import get_settings
 
-client = InfluxDBClient(url=INFLUX_URL, token=INFLUX_TOKEN, org=INFLUX_ORG)
+client = InfluxDBClient(
+    url=get_settings().database.url,
+    token=get_settings().database.token.get_secret_value(),
+    org=get_settings().database.org,
+)
 write_api = client.write_api(write_options=SYNCHRONOUS)
+
 
 def write_state_metrics(session_id, iccid, data):
     """Writes the high-frequency state metrics to InfluxDB."""
@@ -27,7 +28,8 @@ def write_state_metrics(session_id, iccid, data):
         .field("altitude", data.get("altitude", 0.0))
         .field("modem_temperature", data.get("temperature", 0.0))
     )
-    write_api.write(bucket=INFLUX_BUCKET, record=point)
+    write_api.write(bucket=get_settings().database.bucket, record=point)
+
 
 # TODO: add performance benchmarks later
 # def write_performance_benchmark(...)

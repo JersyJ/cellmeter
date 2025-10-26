@@ -1,0 +1,45 @@
+name: edge
+
+services:
+  app:
+    container_name: edge_app
+    profiles: [ prod ]
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    restart: unless-stopped
+    environment:
+      - TELTONIKA__IP=${TELTONIKA__IP}
+      - TELTONIKA__USER=${TELTONIKA__USER}
+      - TELTONIKA__PASSWORD=${TELTONIKA__PASSWORD}
+      - DATABASE__URL=influxdb:8086
+      - DATABASE__TOKEN=${DATABASE__TOKEN}
+      - DATABASE__ORG=${DATABASE__ORG}
+      - DATABASE__BUCKET=${DATABASE__BUCKET}
+    ports:
+      - "8000:8000"
+
+  influxdb:
+    container_name: influxdb
+    image: influxdb:2
+    restart: unless-stopped
+    environment:
+      - DOCKER_INFLUXDB_INIT_USERNAME=${DOCKER_DATABASE__ADMIN_USER}
+      - DOCKER_INFLUXDB_INIT_PASSWORD=${DOCKER_DATABASE__ADMIN_PASSWORD}
+      - DOCKER_INFLUXDB_INIT_ORG=${DATABASE__ORG}
+      - DOCKER_INFLUXDB_INIT_BUCKET=${DATABASE__BUCKET}
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${DATABASE__TOKEN}
+    volumes:
+      - type: volume
+        source: influxdb-data
+        target: /var/lib/influxdb2
+      - type: volume
+        source: influxdb-config
+        target: /etc/influxdb2
+    ports:
+      - "8086:8086"
+
+volumes:
+  influxdb-data:
+  influxdb-config:

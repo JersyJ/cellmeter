@@ -1,0 +1,42 @@
+FROM python:3.13-slim-trixie AS build
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+
+ENV UV_LINK_MODE=copy \
+    UV_COMPILE_BYTECODE=1 \
+    UV_PYTHON_DOWNLOADS=never \
+    UV_PYTHON=python3.13 \
+    UV_PROJECT_ENVIRONMENT=/app
+
+RUN --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    uv sync \
+        --locked \
+        --no-dev \
+        --no-install-project
+
+COPY . /src
+
+WORKDIR /src
+
+RUN uv sync \
+        --locked \
+        --no-dev \
+        --no-editable
+
+FROM python:3.13-slim-trixie AS runtime
+
+ENV PATH="/app/bin:$PATH"
+
+COPY --from=build /app /app
+
+WORKDIR /app
+
+# Test if the application can be imported
+RUN <<EOT
+python -Im site
+python -Ic 'import app'
+EOT
+
+ENTRYPOINT [ "uvicorn" , "app.main:app", "--workers", "2", "--loop", "uvloop", "--host", "0.0.0.0" ]
+
+CMD [ "--port", "9000" ]

@@ -3,14 +3,18 @@ name = "edgeservice"
 version = "0.1.0"
 description = "Edge Service"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.13"
 dependencies = [
     "fastapi[standard]>=0.119.0",
+    "influxdb-client[async]>=1.49.0",
     "pydantic-settings>=2.11.0",
+    "requests>=2.32.5",
 ]
 
 [tool.uv]
 dev-dependencies = [
+    "mypy>=1.18.2",
+    "pre-commit>=4.3.0",
     "ruff>=0.14.1",
 ]
 
@@ -42,3 +46,6 @@ extend-select = [
 
 [tool.ruff.lint.isort]
 known-third-party = ["fastapi", "pydantic", "starlette"]
+
+[tool.mypy]
+python_version = "3.13"
