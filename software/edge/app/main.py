@@ -6,6 +6,7 @@ from contextlib import asynccontextmanager
 from fastapi import BackgroundTasks, FastAPI, HTTPException
 
 from app import db_client, poller, session_manager
+from app.models import SessionResponse
 
 background_tasks = {}
 
@@ -32,7 +33,7 @@ async def lifespan(app: FastAPI):
         session_manager.end_session()
 
 
-app = FastAPI(title="Edge Service", lifespan=lifespan)
+app = FastAPI(title="Edge Service", lifespan=lifespan, docs_url="/")
 
 
 async def polling_loop():
@@ -44,15 +45,17 @@ async def polling_loop():
         modem_data = poller.get_modem_status()
 
         if modem_data:
-            # You'll need to parse the actual JSON response.
-            # Example: data = parse_modem_data(modem_data)
-
             db_client.write_state_metrics(session_id, iccid, modem_data)
 
         await asyncio.sleep(1.0)
 
 
-@app.post("/session/start")
+@app.post(
+    "/session/start",
+    summary="Start a new measurement session",
+    description="Starts a new measurement session and begins polling the Teltonika modem for data.",
+    response_model=SessionResponse,
+)
 async def start_session(background_task_runner: BackgroundTasks):
     if session_manager.is_session_active():
         raise HTTPException(status_code=400, detail="Session is already active.")
@@ -69,27 +72,39 @@ async def start_session(background_task_runner: BackgroundTasks):
     task = asyncio.create_task(polling_loop())
     background_tasks["polling_task"] = task
 
-    return {"message": "Measurement session started", "session_id": session_id, "iccid": iccid}
+    return SessionResponse(
+        message="Measurement session started", session_id=session_id, iccid=iccid
+    )
 
 
-@app.post("/session/end")
-async def end_session():
+@app.post(
+    "/session/end",
+    summary="End the current measurement session",
+    description="Ends the current measurement session and stops polling the Teltonika modem for data.",
+    response_model=SessionResponse,
+)
+async def end_session() -> SessionResponse:
     if not session_manager.is_session_active():
         raise HTTPException(status_code=400, detail="No active session to end.")
 
-    session_manager.end_session()
+    session_id, iccid = session_manager.end_session()
 
     # Stop the background task
     if "polling_task" in background_tasks:
         background_tasks["polling_task"].cancel()
         del background_tasks["polling_task"]
 
-    return {"message": "Measurement session ended."}
+    return SessionResponse(message="Measurement session ended.", session_id=session_id, iccid=iccid)
 
 
-@app.get("/status")
-def get_status():
+@app.get(
+    "/status",
+    summary="Get current session status",
+    description="Retrieves the current session status including session ID and ICCID if a session is active.",
+    response_model=SessionResponse,
+)
+def get_status() -> SessionResponse:
     state = session_manager.get_session_state()
     if state:
         return state
-    return {"is_active": False, "session_id": None, "iccid": None}
+    return SessionResponse(message="No active session.", session_id=None, iccid=None)

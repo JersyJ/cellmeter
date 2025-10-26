@@ -16,7 +16,7 @@ import logging.config
 from functools import lru_cache
 from pathlib import Path
 
-from pydantic import BaseModel, SecretStr, Field
+from pydantic import BaseModel, Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 PROJECT_DIR = Path(__file__).parent.parent
@@ -50,6 +50,7 @@ class Settings(BaseSettings):
     database: Database = Field(default_factory=Database)
     session_db: SessionDB = Field(default_factory=SessionDB)
     log_level: str = "INFO"
+    debug_mode: bool = True
 
     model_config = SettingsConfigDict(
         extra="ignore",

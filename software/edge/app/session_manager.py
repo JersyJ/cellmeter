@@ -21,7 +21,7 @@ def _get_db_connection() -> sqlite3.Connection:
     return db
 
 
-def setup_database():
+def setup_database() -> None:
     """
     Initializes the database and creates the session table if it doesn't exist.
     This function should be called once when the FastAPI application starts.
@@ -71,16 +71,18 @@ def start_new_session(session_id: str, iccid: str) -> bool:
         raise HTTPException(status_code=400, detail="Session is already active.")
 
 
-def end_session():
+def end_session() -> tuple[str, str] | None:
     """Ends the current session by deleting the row from the session table."""
     conn = _get_db_connection()
     session_id = get_session_id()  # Get the ID before deleting
+    iccid = get_iccid()
 
     with conn:
         cursor = conn.execute("DELETE FROM session WHERE id = 1")
 
     if cursor.rowcount > 0:
         logging.info(f"Session '{session_id}' has ended.")
+        return session_id, iccid
     else:
         logging.warning("Attempted to end session, but none was active.")
 
