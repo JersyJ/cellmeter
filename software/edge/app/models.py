@@ -14,7 +14,6 @@ class BaseSessionResponse(BaseModel):
     )
 
 
-
 class SessionResponse(BaseSessionResponse):
     """Defines the structured JSON response for the session endpoint."""
 
@@ -50,7 +49,11 @@ class HighFrequencyStateTeltonikaResponse(BaseModel):
             AliasPath("data", 0, "cell_info", 0, "arfcn"),  # Priority 4: 2G/GSM
         ),
     )
-    physical_cell_id: str | None = Field(None, validation_alias=AliasPath("data", 0, "cell_info", 0, "pcid"))
+    physical_cell_id: str | None = Field(
+        None, validation_alias=AliasPath("data", 0, "cell_info", 0, "pcid")
+    )
     operator: str | None = Field(None, validation_alias=AliasPath("data", 0, "operator"))
     # Device Status
-    modem_temperature: float | None = Field(None, validation_alias=AliasPath("data", 0, "temperature"))
+    modem_temperature: float | None = Field(
+        None, validation_alias=AliasPath("data", 0, "temperature")
+    )

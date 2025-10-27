@@ -100,6 +100,7 @@ async def end_session() -> SessionResponse:
         iccid=base_session_response.iccid,
     )
 
+
 @app.get(
     "/status",
     summary="Get current session status",
@@ -109,5 +110,5 @@ async def end_session() -> SessionResponse:
 def get_status() -> SessionResponse:
     state = session_manager.get_session_state()
     if state and state.get("is_active") == 1:
-        return SessionResponse.model_validate(state)
+        return SessionResponse.model_validate(SessionResponse(message="Session is active", session_id=state.get("session_id"), iccid=state.get("iccid")))
     return SessionResponse(message="No active session.", session_id=None, iccid=None)

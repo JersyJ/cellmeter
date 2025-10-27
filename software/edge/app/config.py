@@ -47,7 +47,7 @@ class SessionDB(BaseModel):
 
 class Settings(BaseSettings):
     teltonika: Teltonika = Field(default_factory=Teltonika)  # type: ignore
-    database: Database = Field(default_factory=Database)     # type: ignore
+    database: Database = Field(default_factory=Database)  # type: ignore
     session_db: SessionDB = Field(default_factory=SessionDB)
     log_level: str = "INFO"
     debug_mode: bool = True
