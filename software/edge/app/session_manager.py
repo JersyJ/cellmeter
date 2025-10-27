@@ -5,6 +5,7 @@ import threading
 from fastapi import HTTPException
 
 from app.config import get_settings
+from app.models import BaseSessionResponse
 
 # Use a thread-local storage for the connection to ensure that
 # each thread gets its own connection object.
@@ -71,7 +72,7 @@ def start_new_session(session_id: str, iccid: str) -> bool:
         raise HTTPException(status_code=400, detail="Session is already active.")
 
 
-def end_session() -> tuple[str | None, str | None] | None:
+def end_session() -> BaseSessionResponse:
     """Ends the current session by deleting the row from the session table."""
     conn = _get_db_connection()
     session_id = get_session_id()  # Get the ID before deleting
@@ -82,10 +83,10 @@ def end_session() -> tuple[str | None, str | None] | None:
 
     if cursor.rowcount > 0:
         logging.info(f"Session '{session_id}' has ended.")
-        return session_id, iccid
     else:
         logging.warning("Attempted to end session, but none was active.")
-        return None
+
+    return BaseSessionResponse(session_id=session_id, iccid=iccid)
 
 
 def _get_session_row() -> sqlite3.Row | None:

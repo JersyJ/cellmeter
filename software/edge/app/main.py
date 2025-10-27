@@ -8,7 +8,7 @@ from fastapi import BackgroundTasks, FastAPI, HTTPException
 from app import db_client, poller, session_manager
 from app.models import SessionResponse
 
-background_tasks = {}
+background_tasks: dict[str, asyncio.Task] = {}
 
 
 @asynccontextmanager
@@ -87,15 +87,18 @@ async def end_session() -> SessionResponse:
     if not session_manager.is_session_active():
         raise HTTPException(status_code=400, detail="No active session to end.")
 
-    session_id, iccid = session_manager.end_session()
+    base_session_response = session_manager.end_session()
 
     # Stop the background task
     if "polling_task" in background_tasks:
         background_tasks["polling_task"].cancel()
         del background_tasks["polling_task"]
 
-    return SessionResponse(message="Measurement session ended.", session_id=session_id, iccid=iccid)
-
+    return SessionResponse(
+        message="Measurement session ended.",
+        session_id=base_session_response.session_id,
+        iccid=base_session_response.iccid,
+    )
 
 @app.get(
     "/status",
