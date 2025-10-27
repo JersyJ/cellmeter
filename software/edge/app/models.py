@@ -1,17 +1,33 @@
+from typing import Annotated
+
 from pydantic import AliasChoices, AliasPath, BaseModel, Field
+
+
+class SessionRequest(BaseModel):
+    """Model for session start request payload."""
+
+    auto_benchmarks_enabled: bool = Field(
+        False,
+        description="Flag to enable or disable automatic benchmarks during the session.",
+    )
 
 
 class BaseSessionResponse(BaseModel):
     """Base model for session responses."""
 
-    session_id: str | None = Field(
-        None,
-        description="Unique identifier for the session.",
-    )
-    iccid: str | None = Field(
-        None,
-        description="ICCID of the SIM card used in the session.",
-    )
+    session_id: (
+        Annotated[str, Field(description="Unique identifier for the session.")] | None
+    ) = None
+
+    iccid: (
+        Annotated[str, Field(description="ICCID of the SIM card used in the session.")] | None
+    ) = None
+    benchmarks_running: (
+        Annotated[
+            bool, Field(description="Indicates if benchmarks are running for the session.")
+        ]
+        | None
+    ) = None
 
 
 class SessionResponse(BaseSessionResponse):
@@ -57,3 +73,9 @@ class HighFrequencyStateTeltonikaResponse(BaseModel):
     modem_temperature: float | None = Field(
         None, validation_alias=AliasPath("data", 0, "temperature")
     )
+
+
+class ManualBenchmarkResponse(BaseModel):
+    """Response model for the manual benchmark trigger endpoint."""
+
+    message: str = Field(..., description="A confirmation message.")

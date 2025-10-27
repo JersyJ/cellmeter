@@ -37,14 +37,14 @@ def setup_database() -> None:
             id INTEGER PRIMARY KEY CHECK (id = 1),
             session_id TEXT NOT NULL,
             iccid TEXT NOT NULL,
-            is_active BOOLEAN NOT NULL CHECK (is_active = 1)
+            benchmarks_running BOOLEAN NOT NULL
         )
     """)
     conn.commit()
     logging.info("Session database initialized.")
 
 
-def start_new_session(session_id: str, iccid: str) -> bool:
+def start_new_session(session_id: str, iccid: str, auto_benchmarks_enabled: bool) -> bool:
     """
     Starts a new measurement session by inserting a row into the SQLite DB.
 
@@ -60,33 +60,35 @@ def start_new_session(session_id: str, iccid: str) -> bool:
         # It will COMMIT on success or ROLLBACK on an error.
         with conn:
             conn.execute(
-                "INSERT INTO session (id, session_id, iccid, is_active) VALUES (?, ?, ?, ?)",
-                (1, session_id, iccid, True),
+                "INSERT INTO session (id, session_id, iccid, benchmarks_running) VALUES (?, ?, ?, ?)",
+                (1, session_id, iccid, auto_benchmarks_enabled),
             )
-        logging.info(f"Session '{session_id}' started with ICCID '{iccid}'.")
+        logging.info(
+            f"Session '{session_id}' started with ICCID '{iccid}' (Benchmarks Running: {auto_benchmarks_enabled})."
+        )
         return True
     except sqlite3.IntegrityError:
         # This error occurs if we try to INSERT a row with id=1 when one
         # already exists. This is our concurrency-safe way of checking.
         logging.warning("Attempted to start session, but one is already active.")
-        raise HTTPException(status_code=400, detail="Session is already active.")
+        raise HTTPException(status_code=409, detail="Session is already active.")
 
 
 def end_session() -> BaseSessionResponse:
     """Ends the current session by deleting the row from the session table."""
+    state = get_session_state()
+
     conn = _get_db_connection()
-    session_id = get_session_id()  # Get the ID before deleting
-    iccid = get_iccid()
 
     with conn:
         cursor = conn.execute("DELETE FROM session WHERE id = 1")
 
     if cursor.rowcount > 0:
-        logging.info(f"Session '{session_id}' has ended.")
+        logging.info(f"Session '{state.session_id}' has ended.")
     else:
         logging.warning("Attempted to end session, but none was active.")
 
-    return BaseSessionResponse(session_id=session_id, iccid=iccid)
+    return state
 
 
 def _get_session_row() -> sqlite3.Row | None:
@@ -102,19 +104,37 @@ def is_session_active() -> bool:
     return _get_session_row() is not None
 
 
-def get_session_id() -> str | None:
-    """Retrieves the session ID from the database."""
-    row = _get_session_row()
-    return row["session_id"] if row else None
-
-
-def get_iccid() -> str | None:
-    """Retrieves the ICCID from the database."""
-    row = _get_session_row()
-    return row["iccid"] if row else None
-
-
-def get_session_state() -> dict | None:
+def get_session_state() -> BaseSessionResponse:
     """Retrieves the entire session state as a dictionary."""
     row = _get_session_row()
-    return dict(row) if row else None
+    return (
+        BaseSessionResponse.model_validate(dict(row))
+        if row
+        else BaseSessionResponse()
+    )
+
+
+def acquire_benchmark_lock() -> bool:
+    """
+    Tries to acquire the benchmark lock atomically.
+    Returns True if the lock was acquired, False otherwise.
+    """
+    conn = _get_db_connection()
+    with conn:
+        # This atomic UPDATE is the key to preventing race conditions between workers.
+        cursor = conn.execute(
+            "UPDATE session SET benchmarks_running = 1 WHERE id = 1 AND benchmarks_running = 0"
+        )
+        if cursor.rowcount > 0:
+            logging.debug("Benchmark lock acquired.")
+            return True
+        else:
+            logging.debug("Failed to acquire benchmark lock; already held.")
+            return False
+
+
+def release_benchmark_lock() -> None:
+    """Releases the benchmark lock."""
+    conn = _get_db_connection()
+    with conn:
+        conn.execute("UPDATE session SET benchmarks_running = 0 WHERE id = 1")
