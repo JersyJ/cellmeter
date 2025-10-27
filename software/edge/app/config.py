@@ -42,7 +42,7 @@ class Database(BaseModel):
 class SessionDB(BaseModel):
     """Settings related to the session database."""
 
-    path: Path = "/tmp/cellmeter_session.db"
+    path: str = "/tmp/cellmeter_session.db"
 
 
 class Settings(BaseSettings):

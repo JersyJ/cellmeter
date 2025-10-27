@@ -105,6 +105,6 @@ async def end_session() -> SessionResponse:
 )
 def get_status() -> SessionResponse:
     state = session_manager.get_session_state()
-    if state:
-        return state
+    if state and state.get("is_active") == 1:
+        return SessionResponse.model_validate(state)
     return SessionResponse(message="No active session.", session_id=None, iccid=None)

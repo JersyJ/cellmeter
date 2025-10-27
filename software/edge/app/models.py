@@ -37,7 +37,7 @@ class SessionResponse(BaseSessionResponse):
 
 class HighFrequencyStateTeltonikaResponse(BaseModel):
     """
-    A Pydantic V2 model that uses AliasPath for declarative parsing of the
+    A Pydantic model that uses AliasPath for declarative parsing of the
     nested Teltonika API response.
     """
 

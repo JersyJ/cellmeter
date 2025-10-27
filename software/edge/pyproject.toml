@@ -49,3 +49,4 @@ known-third-party = ["fastapi", "pydantic", "starlette"]
 
 [tool.mypy]
 python_version = "3.13"
+plugins = ['pydantic.mypy']

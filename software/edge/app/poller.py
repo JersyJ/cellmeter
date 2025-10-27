@@ -55,3 +55,4 @@ def get_modem_status() -> HighFrequencyStateTeltonikaResponse | None:
         return HighFrequencyStateTeltonikaResponse.model_validate(response.json())
     except requests.RequestException as e:
         logging.exception(f"Error getting modem status: {e}")
+        return None

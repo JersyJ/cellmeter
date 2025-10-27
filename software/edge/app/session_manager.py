@@ -71,7 +71,7 @@ def start_new_session(session_id: str, iccid: str) -> bool:
         raise HTTPException(status_code=400, detail="Session is already active.")
 
 
-def end_session() -> tuple[str, str] | None:
+def end_session() -> tuple[str | None, str | None] | None:
     """Ends the current session by deleting the row from the session table."""
     conn = _get_db_connection()
     session_id = get_session_id()  # Get the ID before deleting
@@ -85,6 +85,7 @@ def end_session() -> tuple[str, str] | None:
         return session_id, iccid
     else:
         logging.warning("Attempted to end session, but none was active.")
+        return None
 
 
 def _get_session_row() -> sqlite3.Row | None:
