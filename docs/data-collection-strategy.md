@@ -64,7 +64,7 @@ This group consists of active network tests that measure the actual user experie
 | **Throughput** | | |
 | `iperf3_upload_mbps` | `iperf3` | Measured upload bandwidth to your dedicated server. |
 | `iperf3_download_mbps`| `iperf3 -R` | Measured download bandwidth from your dedicated server. |
-| `speedtest_upload_mbps`| `speedtest-cli` | Measured upload bandwidth to a public SpeedTest server. (Run less often, e.g., every 5 min). |
+| `speedtest_upload_mbps`| `speedtest-cli` | Measured upload bandwidth to a public SpeedTest server. (Run less often, e.g., every 1 min). |
 | `speedtest_download_mbps`| `speedtest-cli` | Measured download bandwidth from a public SpeedTest server. (Run less often). |
 | **Latency & Reliability** | | |
 | `ping_rtt_avg_ms` | `ping` | Average Round Trip Time to a stable target (e.g., `8.8.8.8` or ground server). |
