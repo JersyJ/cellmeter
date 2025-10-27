@@ -6,7 +6,7 @@ from pydantic import AliasChoices, AliasPath, BaseModel, Field
 class SessionRequest(BaseModel):
     """Model for session start request payload."""
 
-    auto_benchmarks_enabled: bool = Field(
+    auto_benchmarks: bool = Field(
         False,
         description="Flag to enable or disable automatic benchmarks during the session.",
     )
@@ -15,16 +15,21 @@ class SessionRequest(BaseModel):
 class BaseSessionResponse(BaseModel):
     """Base model for session responses."""
 
-    session_id: (
-        Annotated[str, Field(description="Unique identifier for the session.")] | None
-    ) = None
+    session_id: Annotated[str, Field(description="Unique identifier for the session.")] | None = (
+        None
+    )
 
     iccid: (
         Annotated[str, Field(description="ICCID of the SIM card used in the session.")] | None
     ) = None
-    benchmarks_running: (
+    benchmark_in_progress: (
+        Annotated[bool, Field(description="Indicates if benchmarks are running for the session.")]
+        | None
+    ) = None
+    auto_benchmarks: (
         Annotated[
-            bool, Field(description="Indicates if benchmarks are running for the session.")
+            bool,
+            Field(description="Indicates if automatic benchmarks are enabled for the session."),
         ]
         | None
     ) = None
@@ -73,6 +78,22 @@ class HighFrequencyStateTeltonikaResponse(BaseModel):
     modem_temperature: float | None = Field(
         None, validation_alias=AliasPath("data", 0, "temperature")
     )
+
+
+class PingResult(BaseModel):
+    rtt_avg_ms: float | None = None
+    packet_loss_pct: float | None = None
+
+
+class Iperf3Result(BaseModel):
+    upload_mbps: float | None = None
+    download_mbps: float | None = None
+    jitter_ms: float | None = None
+
+
+class SpeedtestResult(BaseModel):
+    upload_mbps: float | None = None
+    download_mbps: float | None = None
 
 
 class ManualBenchmarkResponse(BaseModel):

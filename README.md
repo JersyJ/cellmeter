@@ -7,7 +7,7 @@ It polls data from the **Teltonika OTD500 API**, including **GPS** and **altimet
 ---
 
 ## Features
-- Near real-time (1s) data collection from **Teltonika OTD500 JSON API** and other sensors
+- Two types of data collection from **Teltonika OTD500 JSON API** and other sensors
 - Metrics: GPS, altitude, RSSI, RSRP, RSRQ, SINR, CID/PCI, download/upload speed
 - **Session-based measuring** with unique IDs and timestamps
 - Permanent storage of historical data (InfluxDB)

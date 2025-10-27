@@ -1,8 +1,15 @@
+import logging
+
 from influxdb_client import InfluxDBClient, Point
 from influxdb_client.client.write_api import SYNCHRONOUS
 
 from app.config import get_settings
-from app.models import HighFrequencyStateTeltonikaResponse
+from app.models import (
+    HighFrequencyStateTeltonikaResponse,
+    Iperf3Result,
+    PingResult,
+    SpeedtestResult,
+)
 
 client = InfluxDBClient(
     url=get_settings().database.url,
@@ -34,5 +41,22 @@ def write_state_metrics(session_id, iccid, data: HighFrequencyStateTeltonikaResp
     )
 
 
-# TODO: add performance benchmarks later
-# def write_performance_benchmark(...)
+def write_performance_benchmark(
+    session_id: str,
+    iccid: str | None,
+    test_type: str,
+    data: PingResult | Iperf3Result | SpeedtestResult,
+):
+    point = (
+        Point("performance_benchmarks")
+        .tag("session_id", session_id)
+        .tag("iccid", iccid)
+        .tag("test_type", test_type)
+    )
+    for field, value in data.model_dump().items():
+        if value is not None:
+            point.field(field, value)
+
+    if len(point._fields) != 0:
+        write_api.write(bucket=get_settings().database.bucket, record=point)
+        logging.info(f"Wrote '{test_type}' benchmark to InfluxDB.")

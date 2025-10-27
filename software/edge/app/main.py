@@ -6,7 +6,10 @@ from contextlib import asynccontextmanager
 from fastapi import BackgroundTasks, FastAPI, HTTPException
 
 from app import db_client, poller, session_manager
+from app.config import get_settings
 from app.models import ManualBenchmarkResponse, SessionRequest, SessionResponse
+from app.poller import run_ssh_iperf3, run_ssh_ping, run_teltonika_speedtest
+from app.ssh_client import ssh_client
 
 background_tasks: dict[str, asyncio.Task] = {}
 
@@ -21,7 +24,10 @@ async def lifespan(app: FastAPI):
     if session_manager.is_session_active():
         logging.warning("A stale session was found on startup. Ending it now.")
         session_manager.end_session()
+
     await poller.get_teltonika_token()
+    await ssh_client.connect()
+
     yield
 
     for task_name, task in list(background_tasks.items()):
@@ -32,6 +38,8 @@ async def lifespan(app: FastAPI):
     # End any active session to ensure a clean shutdown
     if session_manager.is_session_active():
         session_manager.end_session()
+
+    await ssh_client.disconnect()
 
 
 app = FastAPI(title="Edge Service", lifespan=lifespan, docs_url="/")
@@ -47,29 +55,50 @@ async def high_frequency_polling_loop():
         if modem_data:
             db_client.write_state_metrics(state.session_id, state.iccid, modem_data)
 
-        await asyncio.sleep(1.0)
+        await asyncio.sleep(2.0)
 
 
-# async def low_frequency_benchmark_loop():
-#     """Periodically triggers the benchmark suite if the lock is free."""
-#     logging.info("Low-frequency benchmark loop started.")
-#     settings = get_settings().benchmarks
-#     run_count = 0
+async def run_all_benchmarks() -> None:
+    """Runs ping, iperf3, and speedtest sequentially."""
+    state = session_manager.get_session_state()
+    if not state.session_id:
+        return None
 
-#     while session_manager.is_session_active():
-#         should_run_speedtest = (run_count == 0)
+    logging.info(f"Starting benchmark suite for session {state.session_id}...")
 
-#         if session_manager.acquire_benchmark_lock():
-#             try:
-#                 await run_all_benchmarks()
-#             finally:
-#                 session_manager.release_benchmark_lock()
-#         else:
-#             logging.warning("Skipping auto benchmark run; lock is held by another task (e.g., manual trigger).")
+    ping_data = await run_ssh_ping()
+    if ping_data:
+        db_client.write_performance_benchmark(state.session_id, state.iccid, "ping", ping_data)
 
-#         await asyncio.sleep(settings.interval_seconds)
+    iperf3_data = await run_ssh_iperf3()
+    if iperf3_data:
+        db_client.write_performance_benchmark(state.session_id, state.iccid, "iperf3", iperf3_data)
 
-#     logging.info("Low-frequency benchmark loop stopped.")
+    speedtest_data = await run_teltonika_speedtest()
+    if speedtest_data:
+        db_client.write_performance_benchmark(
+            state.session_id, state.iccid, "speedtest", speedtest_data
+        )
+
+
+async def low_frequency_benchmark_loop():
+    """Periodically triggers the benchmark suite if the lock is free."""
+    logging.info("Low-frequency benchmark loop started.")
+
+    while session_manager.is_session_active():
+        if session_manager.acquire_benchmark_lock():
+            try:
+                await run_all_benchmarks()
+            finally:
+                session_manager.release_benchmark_lock()
+        else:
+            logging.warning(
+                "Skipping auto benchmark run; lock is held by another task (e.g., manual trigger)."
+            )
+
+        await asyncio.sleep(get_settings().benchmarking.interval__in_seconds)
+
+    logging.info("Low-frequency benchmark loop stopped.")
 
 
 @app.post(
@@ -89,20 +118,19 @@ async def start_session(session_request: SessionRequest) -> SessionResponse:
     # You would also get the active SIM ICCID here from Teltonika API
     iccid = "8944100000000000001F"  # Placeholder
 
-    session_manager.start_new_session(
-        session_id, iccid, session_request.auto_benchmarks_enabled
-    )
+    session_manager.start_new_session(session_id, iccid, session_request.auto_benchmarks)
 
     background_tasks["high_frequency_task"] = asyncio.create_task(high_frequency_polling_loop())
 
-    # if session_request.auto_benchmarks_enabled:
-    #     background_tasks["low_frequency_task"] = asyncio.create_task(low_frequency_benchmark_loop())
+    if session_request.auto_benchmarks:
+        background_tasks["low_frequency_task"] = asyncio.create_task(low_frequency_benchmark_loop())
 
     return SessionResponse(
         message="Measurement session started",
         session_id=session_id,
         iccid=iccid,
-        benchmarks_running=session_request.auto_benchmarks_enabled,
+        benchmark_in_progress=False,
+        auto_benchmarks=session_request.auto_benchmarks,
     )
 
 
@@ -143,10 +171,19 @@ async def get_status() -> SessionResponse:
     return SessionResponse(message="No active session.")
 
 
-@app.post("/benchmarks/start", tags=["benchmarks"], response_model=ManualBenchmarkResponse, status_code=202)
+@app.post(
+    "/benchmarks/run",
+    tags=["benchmarks"],
+    response_model=ManualBenchmarkResponse,
+    status_code=202,
+)
 async def trigger_manual_benchmarks(background_tasks: BackgroundTasks):
-    # TODO: implement benchmarking functionality
-    raise HTTPException(status_code=501, detail="Benchmarking functionality not yet implemented.")
+    async def wrapper():
+        try:
+            await run_all_benchmarks()
+        finally:
+            session_manager.release_benchmark_lock()
+
     if not session_manager.is_session_active():
         raise HTTPException(
             status_code=404, detail="Cannot start benchmarks, no session is active."
@@ -155,11 +192,5 @@ async def trigger_manual_benchmarks(background_tasks: BackgroundTasks):
     if not session_manager.acquire_benchmark_lock():
         raise HTTPException(status_code=409, detail="A benchmark suite is already in progress.")
 
-    async def wrapper():
-        try:
-            pass
-            # await run_all_benchmarks(run_speedtest=True)
-        finally:
-            session_manager.release_benchmark_lock()
     background_tasks.add_task(wrapper)
     return ManualBenchmarkResponse(message="Benchmark suite successfully triggered.")

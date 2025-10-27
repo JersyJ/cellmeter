@@ -37,14 +37,15 @@ def setup_database() -> None:
             id INTEGER PRIMARY KEY CHECK (id = 1),
             session_id TEXT NOT NULL,
             iccid TEXT NOT NULL,
-            benchmarks_running BOOLEAN NOT NULL
+            auto_benchmarks BOOLEAN NOT NULL,
+            benchmark_in_progress BOOLEAN NOT NULL DEFAULT 0
         )
     """)
     conn.commit()
     logging.info("Session database initialized.")
 
 
-def start_new_session(session_id: str, iccid: str, auto_benchmarks_enabled: bool) -> bool:
+def start_new_session(session_id: str, iccid: str, auto_benchmarks: bool) -> bool:
     """
     Starts a new measurement session by inserting a row into the SQLite DB.
 
@@ -60,11 +61,11 @@ def start_new_session(session_id: str, iccid: str, auto_benchmarks_enabled: bool
         # It will COMMIT on success or ROLLBACK on an error.
         with conn:
             conn.execute(
-                "INSERT INTO session (id, session_id, iccid, benchmarks_running) VALUES (?, ?, ?, ?)",
-                (1, session_id, iccid, auto_benchmarks_enabled),
+                "INSERT INTO session (id, session_id, iccid, auto_benchmarks, benchmark_in_progress) VALUES (?, ?, ?, ?, ?)",
+                (1, session_id, iccid, auto_benchmarks, 0),
             )
         logging.info(
-            f"Session '{session_id}' started with ICCID '{iccid}' (Benchmarks Running: {auto_benchmarks_enabled})."
+            f"Session '{session_id}' started with ICCID '{iccid}' (Auto Benchmarks: {auto_benchmarks})."
         )
         return True
     except sqlite3.IntegrityError:
@@ -107,11 +108,7 @@ def is_session_active() -> bool:
 def get_session_state() -> BaseSessionResponse:
     """Retrieves the entire session state as a dictionary."""
     row = _get_session_row()
-    return (
-        BaseSessionResponse.model_validate(dict(row))
-        if row
-        else BaseSessionResponse()
-    )
+    return BaseSessionResponse.model_validate(dict(row)) if row else BaseSessionResponse()
 
 
 def acquire_benchmark_lock() -> bool:
@@ -123,7 +120,7 @@ def acquire_benchmark_lock() -> bool:
     with conn:
         # This atomic UPDATE is the key to preventing race conditions between workers.
         cursor = conn.execute(
-            "UPDATE session SET benchmarks_running = 1 WHERE id = 1 AND benchmarks_running = 0"
+            "UPDATE session SET benchmark_in_progress = 1 WHERE id = 1 AND benchmark_in_progress = 0"
         )
         if cursor.rowcount > 0:
             logging.debug("Benchmark lock acquired.")
@@ -137,4 +134,4 @@ def release_benchmark_lock() -> None:
     """Releases the benchmark lock."""
     conn = _get_db_connection()
     with conn:
-        conn.execute("UPDATE session SET benchmarks_running = 0 WHERE id = 1")
+        conn.execute("UPDATE session SET benchmark_in_progress = 0 WHERE id = 1")

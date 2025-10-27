@@ -27,6 +27,7 @@ class Teltonika(BaseModel):
 
     ip: str
     user: str = "admin"
+    ssh_user: str = "root"
     password: SecretStr
 
 
@@ -45,10 +46,21 @@ class SessionDB(BaseModel):
     path: str = "/tmp/cellmeter_session.db"
 
 
+class Benchmarking(BaseModel):
+    """Settings related to benchmarking tests."""
+
+    ping_address: str = "158.196.195.32"
+    ping_count: int = 10
+    iperf3_server_ip: str = "158.196.195.32"
+    interval__in_seconds: int = 60
+    speedtest_url: str = "http://rychlost.poda.cz:8080/speedtest/upload.php"
+
+
 class Settings(BaseSettings):
     teltonika: Teltonika = Field(default_factory=Teltonika)  # type: ignore
     database: Database = Field(default_factory=Database)  # type: ignore
     session_db: SessionDB = Field(default_factory=SessionDB)
+    benchmarking: Benchmarking = Field(default_factory=Benchmarking)
     log_level: str = "INFO"
     debug_mode: bool = True
 

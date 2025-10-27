@@ -5,6 +5,7 @@ description = "Edge Service"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "asyncssh>=2.21.1",
     "fastapi[standard]>=0.119.0",
     "httpx>=0.28.1",
     "influxdb-client[async]>=1.49.0",

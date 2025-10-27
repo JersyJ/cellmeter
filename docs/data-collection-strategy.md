@@ -21,10 +21,10 @@ To ensure data integrity and simplify analysis, all data collected during a spec
 
 This group combines radio layer metrics with the drone's physical and contextual data. These data points provide a comprehensive snapshot of the platform's state at any given moment.
 
-*   **Execution Interval:** ~1 second (1 Hz)
+*   **Execution Interval:** ~2 second (0.5 Hz)
 *   **Methodology:** A background service on the onboard Raspberry Pi 5 will continuously poll the Teltonika REST API, GPS receiver, and the drone's flight controller (if available) to gather these metrics. Each set of readings will be written to the InfluxDB `state_metrics` measurement with a unified timestamp and the session's `session_id`.
 
-#### **Data Points to Collect (per 1-second interval):**
+#### **Data Points to Collect (per 2-second interval):**
 
 | Parameter Name | Method/Acronym | Source | Description |
 | :--- | :--- | :--- | :--- |
@@ -54,8 +54,8 @@ This group combines radio layer metrics with the drone's physical and contextual
 
 This group consists of active network tests that measure the actual user experience (throughput, latency, reliability). They are run less frequently to minimize network load and data consumption.
 
-*   **Execution Interval:** ~30 - 60 seconds
-*   **Methodology:** The onboard service will periodically execute command-line tools (`iperf3`, `ping`, `speedtest-cli`). The parsed results will be written to the InfluxDB `performance_benchmarks` measurement, tagged with the session's `session_id`.
+*   **Execution Interval:** ~30 - 60 seconds or manual trigger via endpoint `benchmarks/run`
+*   **Methodology:** The onboard service will periodically execute command-line tools and built-in speedtest (`iperf3`, `ping`, `speedtest`). The parsed results will be written to the InfluxDB `performance_benchmarks` measurement, tagged with the session's `session_id`.
 
 #### **Data Points to Collect (per 30-60 second interval):**
 
