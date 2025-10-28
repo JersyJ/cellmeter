@@ -37,7 +37,7 @@ class Database(BaseModel):
     url: str
     token: SecretStr
     org: str = "cellmeter-org"
-    bucket: str = "raw-data"
+    bucket: str = "metrics"
 
 
 class SessionDB(BaseModel):

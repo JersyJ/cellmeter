@@ -53,7 +53,7 @@ async def high_frequency_polling_loop():
         modem_data = await poller.get_modem_status()
 
         if modem_data:
-            db_client.write_state_metrics(state.session_id, state.iccid, modem_data)
+            await db_client.write_state_metrics(state.session_id, state.iccid, modem_data)
 
         await asyncio.sleep(2.0)
 
@@ -68,15 +68,19 @@ async def run_all_benchmarks() -> None:
 
     ping_data = await run_ssh_ping()
     if ping_data:
-        db_client.write_performance_benchmark(state.session_id, state.iccid, "ping", ping_data)
+        await db_client.write_performance_benchmark(
+            state.session_id, state.iccid, "ping", ping_data
+        )
 
     iperf3_data = await run_ssh_iperf3()
     if iperf3_data:
-        db_client.write_performance_benchmark(state.session_id, state.iccid, "iperf3", iperf3_data)
+        await db_client.write_performance_benchmark(
+            state.session_id, state.iccid, "iperf3", iperf3_data
+        )
 
     speedtest_data = await run_teltonika_speedtest()
     if speedtest_data:
-        db_client.write_performance_benchmark(
+        await db_client.write_performance_benchmark(
             state.session_id, state.iccid, "speedtest", speedtest_data
         )
 

@@ -1,7 +1,7 @@
 import logging
 
-from influxdb_client import InfluxDBClient, Point
-from influxdb_client.client.write_api import SYNCHRONOUS
+from influxdb_client.client.influxdb_client_async import InfluxDBClientAsync
+from influxdb_client.client.write.point import Point
 
 from app.config import get_settings
 from app.models import (
@@ -11,15 +11,15 @@ from app.models import (
     SpeedtestResult,
 )
 
-client = InfluxDBClient(
+client = InfluxDBClientAsync(
     url=get_settings().database.url,
     token=get_settings().database.token.get_secret_value(),
     org=get_settings().database.org,
 )
-write_api = client.write_api(write_options=SYNCHRONOUS)
+write_api = client.write_api()
 
 
-def write_state_metrics(session_id, iccid, data: HighFrequencyStateTeltonikaResponse):
+async def write_state_metrics(session_id, iccid, data: HighFrequencyStateTeltonikaResponse):
     """Writes the high-frequency state metrics to InfluxDB."""
     point = (
         Point("state_metrics")
@@ -36,12 +36,13 @@ def write_state_metrics(session_id, iccid, data: HighFrequencyStateTeltonikaResp
         .field("altitude", None)  # TODO: Placeholder, as GPS data is not in the current model
         .field("modem_temperature", data.modem_temperature)
     )
-    write_api.write(
+    await write_api.write(
         bucket=get_settings().database.bucket, org=get_settings().database.org, record=point
     )
+    logging.debug("Wrote state metrics to InfluxDB.")
 
 
-def write_performance_benchmark(
+async def write_performance_benchmark(
     session_id: str,
     iccid: str | None,
     test_type: str,
@@ -58,5 +59,5 @@ def write_performance_benchmark(
             point.field(field, value)
 
     if len(point._fields) != 0:
-        write_api.write(bucket=get_settings().database.bucket, record=point)
+        await write_api.write(bucket=get_settings().database.bucket, record=point)
         logging.info(f"Wrote '{test_type}' benchmark to InfluxDB.")
