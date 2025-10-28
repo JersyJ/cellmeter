@@ -4,6 +4,8 @@ services:
   app:
     container_name: edge_app
     profiles: [ prod ]
+    depends_on:
+      - influxdb
     build:
       context: .
       dockerfile: Dockerfile

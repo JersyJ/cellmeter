@@ -12,12 +12,11 @@ dependencies = [
     "pydantic-settings>=2.11.0",
 ]
 
-[tool.uv]
-dev-dependencies = [
+[dependency-groups]
+dev = [
     "mypy>=1.18.2",
     "pre-commit>=4.3.0",
-    "ruff>=0.14.1",
-    "types-requests>=2.32.4.20250913",
+    "ruff>=0.14.2",
 ]
 
 [build-system]
