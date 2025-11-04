@@ -1,6 +1,6 @@
-from typing import Annotated
+from typing import Annotated, Any
 
-from pydantic import AliasChoices, AliasPath, BaseModel, Field
+from pydantic import AliasPath, BaseModel, ConfigDict, Field, model_validator
 
 
 class SessionRequest(BaseModel):
@@ -50,34 +50,92 @@ class HighFrequencyStateTeltonikaResponse(BaseModel):
     nested Teltonika API response.
     """
 
+    model_config = ConfigDict(validate_by_alias=True, validate_by_name=True)
+
     # Radio Signal Metrics
-    rsrp: str | None = Field(None, validation_alias=AliasPath("data", 0, "rsrp"))
-    rsrq: str | None = Field(None, validation_alias=AliasPath("data", 0, "rsrq"))
-    sinr: str | None = Field(None, validation_alias=AliasPath("data", 0, "sinr"))
+    rsrp: int | None = Field(None, validation_alias=AliasPath("data", 0, "rsrp"))
+    rsrq: int | None = Field(None, validation_alias=AliasPath("data", 0, "rsrq"))
+    sinr: int | None = Field(None, validation_alias=AliasPath("data", 0, "sinr"))
     # Network Identifiers
-    cell_id: str | None = Field(None, validation_alias=AliasPath("data", 0, "cellid"))
-    tracking_area_code: str | None = Field(None, validation_alias=AliasPath("data", 0, "tac"))
+    cell_id: int | None = Field(None, validation_alias=AliasPath("data", 0, "cellid"))
+    tracking_area_code: int | None = Field(None, validation_alias=AliasPath("data", 0, "tac"))
     network_type: str | None = Field(None, validation_alias=AliasPath("data", 0, "ntype"))
     frequency_band: str | None = Field(
         None, validation_alias=AliasPath("data", 0, "cell_info", 0, "bandwidth")
     )
-    frequency_channel: str | None = Field(
-        None,
-        validation_alias=AliasChoices(
-            AliasPath("data", 0, "cell_info", 0, "nr-arfcn"),  # Priority 1: 5G
-            AliasPath("data", 0, "cell_info", 0, "earfcn"),  # Priority 2: 4G/LTE
-            AliasPath("data", 0, "cell_info", 0, "uarfcn"),  # Priority 3: 3G/UMTS
-            AliasPath("data", 0, "cell_info", 0, "arfcn"),  # Priority 4: 2G/GSM
-        ),
-    )
-    physical_cell_id: str | None = Field(
+    frequency_channel: int | None = Field(None)
+    physical_cell_id: int | None = Field(
         None, validation_alias=AliasPath("data", 0, "cell_info", 0, "pcid")
     )
     operator: str | None = Field(None, validation_alias=AliasPath("data", 0, "operator"))
     # Device Status
-    modem_temperature: float | None = Field(
+    modem_temperature: int | None = Field(
         None, validation_alias=AliasPath("data", 0, "temperature")
     )
+
+    @model_validator(mode="before")
+    @classmethod
+    def choose_frequency_channel(cls, data: Any) -> Any:
+        def is_valid(value):
+            if value is None:
+                return False
+            return not (
+                isinstance(value, str) and value.strip().upper().replace("\\", "") in {"N/A", "NA"}
+            )
+
+        try:
+            cell_info = data["data"][0]["cell_info"][0]
+        except (KeyError, IndexError, TypeError):
+            return data
+
+        # Priority list
+        priorities = [
+            "nr-arfcn",  # 5G
+            "earfcn",  # 4G/LTE
+            "uarfcn",  # 3G/UMTS
+            "arfcn",  # 2G/GMS
+        ]
+
+        for key in priorities:
+            val = cell_info.get(key)
+            if is_valid(val):
+                try:
+                    data["frequency_channel"] = int(val)
+                    break
+                except (ValueError, TypeError):
+                    continue
+        else:
+            data["frequency_channel"] = None
+
+        return data
+
+    @model_validator(mode="before")
+    @classmethod
+    def replace_na_with_none(cls, data: Any) -> Any:
+        """Fast normalization: turn 'N/A' or 'N\\/A' anywhere into None."""
+        if not isinstance(data, (dict, list)):
+            return data
+
+        stack = [data]
+        while stack:
+            item = stack.pop()
+            if isinstance(item, dict):
+                for k, v in item.items():
+                    if isinstance(v, str):
+                        vv = v.strip().upper().replace("\\", "")
+                        if vv in {"N/A", "NA", ""}:
+                            item[k] = None
+                    elif isinstance(v, (dict, list)):
+                        stack.append(v)
+            elif isinstance(item, list):
+                for i, v in enumerate(item):
+                    if isinstance(v, str):
+                        vv = v.strip().upper().replace("\\", "")
+                        if vv in {"N/A", "NA", ""}:
+                            item[i] = None
+                    elif isinstance(v, (dict, list)):
+                        stack.append(v)
+        return data
 
 
 class PingResult(BaseModel):

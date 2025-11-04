@@ -65,7 +65,7 @@ async def get_modem_status() -> HighFrequencyStateTeltonikaResponse | None:
                 return await get_modem_status()  # Retry once
 
             response.raise_for_status()
-            return HighFrequencyStateTeltonikaResponse.model_validate(response.json())
+            return HighFrequencyStateTeltonikaResponse.model_validate_json(response.text)
     except httpx.RequestError as e:
         logging.exception(f"Error getting modem status: {e}")
         return None

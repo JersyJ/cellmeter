@@ -39,4 +39,4 @@ EOT
 
 ENTRYPOINT [ "uvicorn" , "app.main:app", "--workers", "1", "--loop", "uvloop", "--host", "0.0.0.0" ]
 
-CMD [ "--port", "9000" ]
+CMD [ "--port", "8000" ]
