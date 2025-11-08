@@ -1,6 +1,8 @@
 from typing import Annotated, Any
 
+from adafruit_bmp3xx import BMP3XX_I2C  # type: ignore
 from pydantic import AliasPath, BaseModel, ConfigDict, Field, model_validator
+from serial import Serial
 
 
 class SessionRequest(BaseModel):
@@ -42,6 +44,15 @@ class SessionResponse(BaseSessionResponse):
         ...,
         description="Human-readable message describing the info about the session.",
     )
+
+
+class SensorsInitResponse(BaseModel):
+    """Response model for the sensors initialization endpoint."""
+
+    gps_serial_instance: Serial = Field(..., description="Serial instance for GPS communication.")
+    bmp3xx_driver: BMP3XX_I2C = Field(..., description="BMP3XX_I2C driver used.")
+    p_ref_hpa: float = Field(..., description="Calibrated reference pressure in hPa.")
+    t_ref_celsius: float = Field(..., description="Calibrated reference temperature in Celsius.")
 
 
 class HighFrequencyStateTeltonikaResponse(BaseModel):
@@ -136,6 +147,21 @@ class HighFrequencyStateTeltonikaResponse(BaseModel):
                     elif isinstance(v, (dict, list)):
                         stack.append(v)
         return data
+
+
+class HighFrequencyStateSensorGpsResponse(BaseModel):
+    gps_fix: bool | None = None
+    latitude: float | None = None
+    longitude: float | None = None
+    gps_altitude: float | None = None
+    speed_kmh: float | None = None
+    satellites: int | None = None
+
+
+class HighFrequencyStateSensorBaroResponse(BaseModel):
+    pressure_hpa: float | None = None
+    temperature_celsius: float | None = None
+    baro_relative_altitude: float | None = None
 
 
 class PingResult(BaseModel):
