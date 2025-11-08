@@ -13,7 +13,7 @@ To ensure data integrity and simplify analysis, all data collected during a spec
 *   **Session Start:** A new session is initiated at the beginning of a data collection flight.
 *   **Session Identifier (`session_id`):** Upon starting, a unique identifier (e.g., a UUID or a timestamp) is generated. This `session_id` is attached to every single data point recorded during the session.
 *   **Contextual Data Logging:** At the beginning of each session, key contextual information is logged. This includes:
-    *   **Active SIM ICCID:** A request is made to the Teltonika API (`GET /api/v1/sim/status`) to retrieve the ICCID of the currently active SIM card. This allows for precise tracking of which mobile carrier is being used for the duration of the session.
+*   **Active SIM ICCID:** A request is made to the Teltonika API (`GET /api/v1/sim/status`) to retrieve the ICCID of the currently active SIM card. This allows for precise tracking of which mobile carrier is being used for the duration of the session.
 
 ---
 
@@ -80,11 +80,11 @@ Primary tags are `session_id` and `iccid` to ensure all data can be easily queri
 
 **1. High-Frequency Measurement:** `state_metrics`
 *   **Tags (for filtering/grouping):** `session_id`, `iccid`, `operator`, `network_type`, `cell_id`
-*   **Fields (the values):** `rsrp`, `rsrq`, `sinr`, `latitude`, `longitude`, `altitude`, `ground_speed`, `modem_temperature`, `physical_cell_id`, `tracking_area_code`
+*   **Fields (the values):** `rsrp`, `rsrq`, `sinr`, `tracking_area_code`, `frequency_band`, `frequency_channel`, `physical_cell_id`, `modem_temperature`, `gps_fix`, `latitude`, `longitude`, `gps_altitude`, `speed_kmh`, `sattelites`, `pressure_hpa`, `temperature_celsius`
 
 **Example (Line Protocol):**
 ```
-state_metrics,session_id=flight-20251013-1030,iccid=8944100000000000001F,operator=Vodafone,network_type=NR5G,cell_id=123456 rsrp=-85,rsrq=-10,sinr=18,latitude=49.195,longitude=16.606,altitude=250.5,ground_speed=10.2,modem_temperature=55.2,physical_cell_id=110,tracking_area_code=3001 1697200200000000000
+state_metrics,session_id=flight-20251013-1030,iccid=8944100000000000001F,operator=Vodafone,network_type=NR5G,cell_id=123456 rsrp=-85,rsrq=-10,sinr=18,tracking_area_code=3001,frequency_band=78,frequency_channel=100,physical_cell_id=110,modem_temperature=55.2,gps_fix=true,latitude=49.195,longitude=16.606,gps_altitude=250.5,speed_kmh=36.7,sattelites=12,pressure_hpa=1013.25,temperature_celsius=22.5 1697200200000000000
 ```
 
 **2. Low-Frequency Measurement:** `performance_benchmarks`
