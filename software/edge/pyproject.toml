@@ -5,6 +5,7 @@ description = "Edge Service"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "adafruit-circuitpython-bmp3xx>=1.3.25",
     "asyncssh>=2.21.1",
     "fastapi[standard]>=0.119.0",
     "httpx>=0.28.1",
@@ -17,6 +18,7 @@ dev = [
     "mypy>=1.18.2",
     "pre-commit>=4.3.0",
     "ruff>=0.14.2",
+    "types-pyserial>=3.5.0.20251001",
 ]
 
 [build-system]

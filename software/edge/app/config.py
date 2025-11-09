@@ -46,6 +46,15 @@ class SessionDB(BaseModel):
     path: str = "/tmp/cellmeter_session.db"
 
 
+class Sensors(BaseModel):
+    """Settings related to sensors."""
+
+    gps_serial_port: str = "/dev/serial0"
+    gps_baudrate: int = 9600
+    baro_i2c_address: int = 0x77
+    baro_reference_samples: int = 50
+
+
 class Benchmarking(BaseModel):
     """Settings related to benchmarking tests."""
 
@@ -60,6 +69,7 @@ class Settings(BaseSettings):
     teltonika: Teltonika = Field(default_factory=Teltonika)  # type: ignore
     database: Database = Field(default_factory=Database)  # type: ignore
     session_db: SessionDB = Field(default_factory=SessionDB)
+    sensors: Sensors = Field(default_factory=Sensors)
     benchmarking: Benchmarking = Field(default_factory=Benchmarking)
     log_level: str = "INFO"
     debug_mode: bool = True
