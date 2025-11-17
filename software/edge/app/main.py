@@ -7,7 +7,7 @@ from fastapi import BackgroundTasks, FastAPI, HTTPException
 
 from app import db_client, poller, session_manager
 from app.config import get_settings
-from app.models import ManualBenchmarkResponse, SensorsInitResponse, SessionRequest, SessionResponse
+from app.models import ManualBenchmarkResponse, SessionRequest, SessionResponse
 from app.poller import run_ssh_iperf3, run_ssh_ping, run_teltonika_speedtest
 from app.sensors import baro_read, gps_read, init_sensors
 from app.ssh_client import ssh_client
@@ -50,7 +50,7 @@ async def high_frequency_polling_loop():
     """The main data collection loop that runs in the background."""
 
     logging.info("High-frequency polling loop started.")
-    sensors: SensorsInitResponse = init_sensors()
+    sensors = await init_sensors()
 
     while session_manager.is_session_active():
         state = session_manager.get_session_state()

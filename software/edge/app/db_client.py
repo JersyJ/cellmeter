@@ -25,8 +25,8 @@ async def write_state_metrics(
     session_id,
     iccid,
     teltonika_data: HighFrequencyStateTeltonikaResponse,
-    gps_data: HighFrequencyStateSensorGpsResponse,
-    baro_data: HighFrequencyStateSensorBaroResponse,
+    gps_data: HighFrequencyStateSensorGpsResponse | None,
+    baro_data: HighFrequencyStateSensorBaroResponse | None,
 ):
     """Writes the high-frequency state metrics to InfluxDB."""
     point = (
@@ -44,16 +44,25 @@ async def write_state_metrics(
         .field("frequency_channel", teltonika_data.frequency_channel)
         .field("physical_cell_id", teltonika_data.physical_cell_id)
         .field("modem_temperature", teltonika_data.modem_temperature)
-        .field("gps_fix", gps_data.gps_fix)
-        .field("latitude", gps_data.latitude)
-        .field("longitude", gps_data.longitude)
-        .field("gps_altitude", gps_data.gps_altitude)
-        .field("speed_kmh", gps_data.speed_kmh)
-        .field("satellites", gps_data.satellites)
-        .field("pressure_hpa", baro_data.pressure_hpa)
-        .field("temperature_celsius", baro_data.temperature_celsius)
-        .field("baro_relative_altitude", baro_data.baro_relative_altitude)
     )
+
+    if gps_data is not None:
+        point = (
+            point.field("gps_fix", gps_data.gps_fix)
+            .field("latitude", gps_data.latitude)
+            .field("longitude", gps_data.longitude)
+            .field("gps_altitude", gps_data.gps_altitude)
+            .field("speed_kmh", gps_data.speed_kmh)
+            .field("satellites", gps_data.satellites)
+        )
+
+    if baro_data is not None:
+        point = (
+            point.field("pressure_hpa", baro_data.pressure_hpa)
+            .field("temperature_celsius", baro_data.temperature_celsius)
+            .field("baro_relative_altitude", baro_data.baro_relative_altitude)
+        )
+
     await write_api.write(
         bucket=get_settings().database.bucket, org=get_settings().database.org, record=point
     )

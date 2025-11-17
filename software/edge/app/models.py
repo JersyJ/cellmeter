@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Annotated, Any
 
 from adafruit_bmp3xx import BMP3XX_I2C  # type: ignore
@@ -46,13 +47,14 @@ class SessionResponse(BaseSessionResponse):
     )
 
 
-class SensorsInitResponse(BaseModel):
-    """Response model for the sensors initialization endpoint."""
+@dataclass
+class SensorsInitResponse:
+    """Response for the sensors initialization endpoint."""
 
-    gps_serial_instance: Serial = Field(..., description="Serial instance for GPS communication.")
-    bmp3xx_driver: BMP3XX_I2C = Field(..., description="BMP3XX_I2C driver used.")
-    p_ref_hpa: float = Field(..., description="Calibrated reference pressure in hPa.")
-    t_ref_celsius: float = Field(..., description="Calibrated reference temperature in Celsius.")
+    gps_serial_instance: Serial
+    bmp3xx_driver: BMP3XX_I2C
+    p_ref_hpa: float
+    t_ref_celsius: float
 
 
 class HighFrequencyStateTeltonikaResponse(BaseModel):
@@ -124,7 +126,7 @@ class HighFrequencyStateTeltonikaResponse(BaseModel):
     @classmethod
     def replace_na_with_none(cls, data: Any) -> Any:
         """Fast normalization: turn 'N/A' or 'N\\/A' anywhere into None."""
-        if not isinstance(data, (dict, list)):
+        if not isinstance(data, dict | list):
             return data
 
         stack = [data]
@@ -136,7 +138,7 @@ class HighFrequencyStateTeltonikaResponse(BaseModel):
                         vv = v.strip().upper().replace("\\", "")
                         if vv in {"N/A", "NA", ""}:
                             item[k] = None
-                    elif isinstance(v, (dict, list)):
+                    elif isinstance(v, dict | list):
                         stack.append(v)
             elif isinstance(item, list):
                 for i, v in enumerate(item):
@@ -144,7 +146,7 @@ class HighFrequencyStateTeltonikaResponse(BaseModel):
                         vv = v.strip().upper().replace("\\", "")
                         if vv in {"N/A", "NA", ""}:
                             item[i] = None
-                    elif isinstance(v, (dict, list)):
+                    elif isinstance(v, dict | list):
                         stack.append(v)
         return data
 
