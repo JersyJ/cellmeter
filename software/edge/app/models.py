@@ -49,7 +49,10 @@ class SessionResponse(BaseSessionResponse):
 
 @dataclass
 class SensorsInitResponse:
-    """Response for the sensors initialization endpoint."""
+    """Response for the sensors initialization endpoint.
+
+    This dataclass should not be serialized.
+    """
 
     gps_serial_instance: Serial
     bmp3xx_driver: BMP3XX_I2C

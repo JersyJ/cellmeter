@@ -24,7 +24,8 @@ services:
     devices:
       - /dev/serial0:/dev/serial0    # GPS serial port (matches config)
       - /dev/i2c-1:/dev/i2c-1        # I2C bus for BMP388 sensor
-    privileged: true  # Required for I2C and GPIO access
+    cap_add:
+      - SYS_RAWIO                    # For direct I/O port access
 
   influxdb:
     container_name: influxdb

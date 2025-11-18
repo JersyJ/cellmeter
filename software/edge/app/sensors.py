@@ -14,6 +14,12 @@ from app.models import (
     SensorsInitResponse,
 )
 
+# Oversampling settings chosen as a trade-off between resolution and sample time:
+# - Pressure: 8x for improved pressure resolution/stability (useful for altitude calc)
+# - Temperature: 2x since temperature changes slowly and lower oversampling reduces conversion time
+BMP388_PRESSURE_OVERSAMPLING = 8
+BMP388_TEMPERATURE_OVERSAMPLING = 2
+
 R_DRY = 287.05  # Specific gas constant for dry air (J/(kg·K))
 G_STD = 9.80665  # Standard gravity (m/s²)
 MINUTES_PER_DEGREE = 60.0
@@ -26,7 +32,7 @@ async def init_sensors() -> SensorsInitResponse:
     Initialize and calibrate the GPS and barometric sensors.
 
     This function attempts to connect to the GPS (via serial port) and the barometric sensor (via I2C)
-    with infinite retry loops. It blocks execution until both sensors are successfully initialized.
+    with infinite retry loops. It suspends execution until both sensors are successfully initialized.
 
     For the barometric sensor, it performs a calibration by collecting a number of pressure and temperature
     samples (as specified in the configuration) to compute reference values.
@@ -41,15 +47,16 @@ async def init_sensors() -> SensorsInitResponse:
             ser = serial.Serial(gps_port, gps_baudrate, timeout=2)
             logging.info(f"GPS on {gps_port}@{gps_baudrate} connected.")
             break
-        except serial.SerialException as e:
-            logging.exception(f"Error GPS on {gps_port}: {e}. Next try in 3s...")
+        except serial.SerialException:
+            logging.exception(f"Error GPS on {gps_port}. Next try in 3s...")
             await asyncio.sleep(3)
 
     while True:
         try:
             i2c = busio.I2C(board.SCL, board.SDA)
             bmp = BMP3XX_I2C(i2c, address=baro_i2c_addr)
-            bmp.pressure_oversampling, bmp.temperature_oversampling = 8, 2
+            bmp.pressure_oversampling = BMP388_PRESSURE_OVERSAMPLING
+            bmp.temperature_oversampling = BMP388_TEMPERATURE_OVERSAMPLING
             logging.info(f"BMP388 @ {hex(baro_i2c_addr)} | Calibrating reference...")
             p_samples: list[float] = []
             t_samples: list[float] = []
@@ -65,8 +72,8 @@ async def init_sensors() -> SensorsInitResponse:
             p_ref, t_ref = sum(p_samples) / len(p_samples), sum(t_samples) / len(t_samples)
             logging.info(f"Reference: p={p_ref:.2f} hPa, t={t_ref:.2f}°C")
             break
-        except (ValueError, RuntimeError) as e:
-            logging.exception(f"Error BMP388 on {hex(baro_i2c_addr)}: {e}. Next try in 3s...")
+        except (ValueError, RuntimeError):
+            logging.exception(f"Error BMP388 on {hex(baro_i2c_addr)}. Next try in 3s...")
             await asyncio.sleep(3)
 
     return SensorsInitResponse(
@@ -177,14 +184,15 @@ def rel_altitude_m(p_hpa, p_ref_hpa, t_cur_c, t_ref_c) -> float | None:
         T_mean  = mean temperature in Kelvin between the two measurements
         g       = standard gravity (G_STD = 9.80665 m/s²)
         p_ref   = reference pressure in hPa
-        p       = current pressure in hPa"""
+        p       = current pressure in hPa
+    """
     if p_hpa <= 0 or p_ref_hpa <= 0:
         return None
     t_mean_k = ((t_cur_c + t_ref_c) / 2.0) + CELSIUS_TO_KELVIN
     return (R_DRY * t_mean_k / G_STD) * math.log(p_ref_hpa / p_hpa)
 
 
-def gps_read(ser: serial.Serial) -> HighFrequencyStateSensorGpsResponse:
+async def gps_read(ser: serial.Serial) -> HighFrequencyStateSensorGpsResponse:
     """
     Reads a line from the provided serial port, attempts to parse it as a GPS NMEA sentence,
     and returns a HighFrequencyStateSensorGpsResponse object if successful.
@@ -197,11 +205,11 @@ def gps_read(ser: serial.Serial) -> HighFrequencyStateSensorGpsResponse:
         if parsed:
             return parsed
     except serial.SerialException:
-        logging.exception("Error GPS.")
+        logging.exception("Error reading from GPS serial port.")
     return HighFrequencyStateSensorGpsResponse()
 
 
-def baro_read(
+async def baro_read(
     bmp3xx_driver: BMP3XX_I2C, p_ref: float, t_ref: float
 ) -> HighFrequencyStateSensorBaroResponse:
     """
@@ -219,5 +227,5 @@ def baro_read(
                 baro_relative_altitude=round(delta_h, 2) if delta_h is not None else None,
             )
     except Exception:
-        logging.exception("Error BMP388.")
+        logging.exception("Failed to read pressure/temperature from BMP388 sensor.")
     return HighFrequencyStateSensorBaroResponse()

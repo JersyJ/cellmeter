@@ -56,8 +56,8 @@ async def high_frequency_polling_loop():
         state = session_manager.get_session_state()
 
         modem_data = await poller.get_modem_status()
-        gps_data = gps_read(sensors.gps_serial_instance)
-        baro_data = baro_read(sensors.bmp3xx_driver, sensors.p_ref_hpa, sensors.t_ref_celsius)
+        gps_data = await gps_read(sensors.gps_serial_instance)
+        baro_data = await baro_read(sensors.bmp3xx_driver, sensors.p_ref_hpa, sensors.t_ref_celsius)
         if modem_data:
             await db_client.write_state_metrics(
                 state.session_id, state.iccid, modem_data, gps_data, baro_data
