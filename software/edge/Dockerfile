@@ -7,6 +7,15 @@ ENV UV_LINK_MODE=copy \
     UV_PYTHON=python3.13 \
     UV_PROJECT_ENVIRONMENT=/app
 
+RUN export DEBIAN_FRONTEND=noninteractive && \
+    apt-get update && \
+    apt-get install -y \
+    -o APT::Install-Recommends=false \
+    -o APT::Install-Suggests=false \
+    build-essential && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp
+
 RUN --mount=type=bind,source=uv.lock,target=uv.lock \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
     uv sync \
