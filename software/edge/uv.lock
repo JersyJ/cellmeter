@@ -461,6 +461,7 @@ dependencies = [
     { name = "httpx" },
     { name = "influxdb-client", extra = ["async"] },
     { name = "pydantic-settings" },
+    { name = "rpi-gpio" },
 ]
 
 [package.dev-dependencies]
@@ -479,6 +480,7 @@ requires-dist = [
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "influxdb-client", extras = ["async"], specifier = ">=1.49.0" },
     { name = "pydantic-settings", specifier = ">=2.11.0" },
+    { name = "rpi-gpio", specifier = ">=0.7.1" },
 ]
 
 [package.metadata.requires-dev]
@@ -1332,6 +1334,12 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/62/50/67137617cbe3e53cbf34d21dad49e153f731797e07261f3b00572a49e69d/rignore-0.7.1-cp314-cp314-win_amd64.whl", hash = "sha256:3f55593d3bbcae3c108d546e8776e51ecb61d1d79bbb02016acf29d136813835", size = 717951, upload-time = "2025-10-15T20:59:20.519Z" },
     { url = "https://files.pythonhosted.org/packages/77/19/dd556e97354ad541b4f7f113e28503865777d6edd940c147f052dc7b8f04/rignore-0.7.1-cp314-cp314-win_arm64.whl", hash = "sha256:60745773b5278fa5f20232fbfb148d74ad9fb27ae8a5097d3cbd5d7cc922d7f7", size = 647796, upload-time = "2025-10-15T20:59:13.724Z" },
 ]
+
+[[package]]
+name = "rpi-gpio"
+version = "0.7.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/c4/0f/10b524a12b3445af1c607c27b2f5ed122ef55756e29942900e5c950735f2/RPi.GPIO-0.7.1.tar.gz", hash = "sha256:cd61c4b03c37b62bba4a5acfea9862749c33c618e0295e7e90aa4713fb373b70", size = 29090, upload-time = "2022-02-06T15:15:06.022Z" }
 
 [[package]]
 name = "ruff"

@@ -54,10 +54,10 @@ class SensorsInitResponse:
     This dataclass should not be serialized.
     """
 
-    gps_serial_instance: Serial
-    bmp3xx_driver: BMP3XX_I2C
-    p_ref_hpa: float
-    t_ref_celsius: float
+    gps_serial_instance: Serial | None = None
+    bmp3xx_driver: BMP3XX_I2C | None = None
+    p_ref_hpa: float | None = None
+    t_ref_celsius: float | None = None
 
 
 class HighFrequencyStateTeltonikaResponse(BaseModel):

@@ -42,16 +42,23 @@ async def init_sensors() -> SensorsInitResponse:
     baro_i2c_addr = get_settings().sensors.baro_i2c_address
     baro_ref_samples = get_settings().sensors.baro_reference_samples
 
-    while True:
+    ser = None
+    bmp = None
+    p_ref = None
+    t_ref = None
+
+    # Try to initialize GPS up to 2 times
+    for attempt in range(2):
         try:
             ser = serial.Serial(gps_port, gps_baudrate, timeout=2)
             logging.info(f"GPS on {gps_port}@{gps_baudrate} connected.")
             break
-        except serial.SerialException:
-            logging.exception(f"Error GPS on {gps_port}. Next try in 3s...")
-            await asyncio.sleep(3)
+        except Exception as e:
+            logging.warning(f"GPS initialization failed (attempt {attempt + 1}/2): {e}")
+            await asyncio.sleep(1)
 
-    while True:
+    # Try to initialize Barometric sensor up to 2 times
+    for attempt in range(2):
         try:
             i2c = busio.I2C(board.SCL, board.SDA)
             bmp = BMP3XX_I2C(i2c, address=baro_i2c_addr)
@@ -60,7 +67,7 @@ async def init_sensors() -> SensorsInitResponse:
             logging.info(f"BMP388 @ {hex(baro_i2c_addr)} | Calibrating reference...")
             p_samples: list[float] = []
             t_samples: list[float] = []
-            while len(p_samples) < baro_ref_samples:
+            for _ in range(baro_ref_samples):
                 try:
                     p, t = bmp.pressure, bmp.temperature
                     if p is not None and t is not None:
@@ -69,12 +76,20 @@ async def init_sensors() -> SensorsInitResponse:
                 except Exception:
                     logging.exception("Exception while reading BMP388 sensor")
                 await asyncio.sleep(0.1)
-            p_ref, t_ref = sum(p_samples) / len(p_samples), sum(t_samples) / len(t_samples)
-            logging.info(f"Reference: p={p_ref:.2f} hPa, t={t_ref:.2f}°C")
-            break
-        except (ValueError, RuntimeError):
-            logging.exception(f"Error BMP388 on {hex(baro_i2c_addr)}. Next try in 3s...")
-            await asyncio.sleep(3)
+            if p_samples and t_samples:
+                p_ref = sum(p_samples) / len(p_samples)
+                t_ref = sum(t_samples) / len(t_samples)
+                logging.info(f"Reference: p={p_ref:.2f} hPa, t={t_ref:.2f}°C")
+                break
+            else:
+                logging.warning(
+                    f"Barometric sensor calibration failed: no valid samples. (attempt {attempt + 1}/2)"
+                )
+        except Exception as e:
+            logging.warning(
+                f"Barometric sensor initialization failed (attempt {attempt + 1}/2): {e}"
+            )
+            await asyncio.sleep(1)
 
     return SensorsInitResponse(
         gps_serial_instance=ser,

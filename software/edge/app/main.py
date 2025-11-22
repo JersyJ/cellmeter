@@ -52,12 +52,23 @@ async def high_frequency_polling_loop():
     logging.info("High-frequency polling loop started.")
     sensors = await init_sensors()
 
+    if not sensors.gps_serial_instance:
+        logging.warning("GPS sensor not available. GPS data will not be collected.")
+    if not (sensors.bmp3xx_driver and sensors.p_ref_hpa and sensors.t_ref_celsius):
+        logging.warning("Barometric sensor not available. Barometric data will not be collected.")
+
     while session_manager.is_session_active():
         state = session_manager.get_session_state()
 
         modem_data = await poller.get_modem_status()
-        gps_data = await gps_read(sensors.gps_serial_instance)
-        baro_data = await baro_read(sensors.bmp3xx_driver, sensors.p_ref_hpa, sensors.t_ref_celsius)
+        gps_data = None
+        baro_data = None
+        if sensors.gps_serial_instance:
+            gps_data = await gps_read(sensors.gps_serial_instance)
+        if sensors.bmp3xx_driver and sensors.p_ref_hpa and sensors.t_ref_celsius:
+            baro_data = await baro_read(
+                sensors.bmp3xx_driver, sensors.p_ref_hpa, sensors.t_ref_celsius
+            )
         if modem_data:
             await db_client.write_state_metrics(
                 state.session_id, state.iccid, modem_data, gps_data, baro_data

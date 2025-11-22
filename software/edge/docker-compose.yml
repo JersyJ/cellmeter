@@ -22,6 +22,7 @@ services:
     ports:
       - "8000:8000"
     devices:
+      - /dev/gpiomem:/dev/gpiomem    # Required for RPi.GPIO + Blinka
       - /dev/serial0:/dev/serial0    # GPS serial port (matches config)
       - /dev/i2c-1:/dev/i2c-1        # I2C bus for BMP388 sensor
     cap_add:
