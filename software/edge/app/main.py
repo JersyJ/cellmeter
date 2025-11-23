@@ -9,6 +9,7 @@ from app import db_client, poller, session_manager
 from app.config import get_settings
 from app.models import ManualBenchmarkResponse, SessionRequest, SessionResponse
 from app.poller import run_ssh_iperf3, run_ssh_ping, run_teltonika_speedtest
+from app.sensors import baro_read, gps_read, init_sensors
 from app.ssh_client import ssh_client
 
 background_tasks: dict[str, asyncio.Task] = {}
@@ -47,13 +48,38 @@ app = FastAPI(title="Edge Service", lifespan=lifespan, docs_url="/")
 
 async def high_frequency_polling_loop():
     """The main data collection loop that runs in the background."""
+
+    logging.info("High-frequency polling loop started.")
+    sensors = await init_sensors()
+
+    gps_available = sensors.gps_serial_instance is not None
+    if not gps_available:
+        logging.warning("GPS sensor not available. GPS data will not be collected.")
+
+    baro_available = (
+        (sensors.bmp3xx_driver is not None)
+        and (sensors.p_ref_hpa is not None)
+        and (sensors.t_ref_celsius is not None)
+    )
+    if not baro_available:
+        logging.warning("Barometric sensor not available. Barometric data will not be collected.")
+
     while session_manager.is_session_active():
         state = session_manager.get_session_state()
 
         modem_data = await poller.get_modem_status()
-
+        gps_data = None
+        baro_data = None
+        if gps_available:
+            gps_data = await gps_read(sensors.gps_serial_instance)
+        if baro_available:
+            baro_data = await baro_read(
+                sensors.bmp3xx_driver, sensors.p_ref_hpa, sensors.t_ref_celsius
+            )
         if modem_data:
-            await db_client.write_state_metrics(state.session_id, state.iccid, modem_data)
+            await db_client.write_state_metrics(
+                state.session_id, state.iccid, modem_data, gps_data, baro_data
+            )
 
         await asyncio.sleep(2.0)
 
@@ -109,7 +135,7 @@ async def low_frequency_benchmark_loop():
     "/sessions/start",
     tags=["sessions"],
     summary="Start a new measurement session",
-    description="Starts a new measurement session and begins polling the Teltonika modem for data.",
+    description="Starts a new measurement session and begins polling the Teltonika modem for data and sensors if available.",
     response_model=SessionResponse,
 )
 async def start_session(session_request: SessionRequest) -> SessionResponse:
@@ -142,7 +168,7 @@ async def start_session(session_request: SessionRequest) -> SessionResponse:
     "/sessions/end",
     tags=["sessions"],
     summary="End the current measurement session",
-    description="Ends the current measurement session and stops polling the Teltonika modem for data.",
+    description="Ends the current measurement session and stops polling the Teltonika modem for data and sensors if available.",
     response_model=SessionResponse,
 )
 async def end_session() -> SessionResponse:

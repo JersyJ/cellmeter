@@ -15,12 +15,24 @@ services:
       - TELTONIKA__IP=${TELTONIKA__IP}
       - TELTONIKA__USER=${TELTONIKA__USER}
       - TELTONIKA__PASSWORD=${TELTONIKA__PASSWORD}
-      - DATABASE__URL=influxdb:8086
-      - DATABASE__TOKEN=${DATABASE__TOKEN}
+      - DATABASE__URL=http://influxdb:8086
       - DATABASE__ORG=${DATABASE__ORG}
       - DATABASE__BUCKET=${DATABASE__BUCKET}
+      - DATABASE__TOKEN=${DATABASE__TOKEN}
+      - BENCHMARKING__PING_ADDRESS=${BENCHMARKING__PING_ADDRESS}
+      - BENCHMARKING__IPERF3_SERVER_IP=${BENCHMARKING__IPERF3_SERVER_IP}
+      - BENCHMARKING__SPEEDTEST_URL=${BENCHMARKING__SPEEDTEST_URL}
+      - SENSORS__GPS_SERIAL_PORT=/dev/ttyAMA0
+      - SENSORS__BARO_I2C_ADDRESS=${SENSORS__BARO_I2C_ADDRESS}
     ports:
       - "8000:8000"
+    devices:
+      - /dev/gpiomem:/dev/gpiomem    # Required for RPi.GPIO + Blinka
+      - /dev/ttyAMA0:/dev/ttyAMA0    # GPS Direct access to UART
+      - /dev/i2c-1:/dev/i2c-1        # I2C bus for BMP388 sensor
+      - /dev/i2c-20:/dev/i2c-20      # I2C bus for BMP388 sensor
+      - /dev/i2c-21:/dev/i2c-21      # I2C bus for BMP388 sensor
+    privileged: true
 
   influxdb:
     container_name: influxdb

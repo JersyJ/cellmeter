@@ -5,6 +5,8 @@ from influxdb_client.client.write.point import Point
 
 from app.config import get_settings
 from app.models import (
+    HighFrequencyStateSensorBaroResponse,
+    HighFrequencyStateSensorGpsResponse,
     HighFrequencyStateTeltonikaResponse,
     Iperf3Result,
     PingResult,
@@ -19,23 +21,48 @@ client = InfluxDBClientAsync(
 write_api = client.write_api()
 
 
-async def write_state_metrics(session_id, iccid, data: HighFrequencyStateTeltonikaResponse):
+async def write_state_metrics(
+    session_id,
+    iccid,
+    teltonika_data: HighFrequencyStateTeltonikaResponse,
+    gps_data: HighFrequencyStateSensorGpsResponse | None,
+    baro_data: HighFrequencyStateSensorBaroResponse | None,
+):
     """Writes the high-frequency state metrics to InfluxDB."""
     point = (
         Point("state_metrics")
         .tag("session_id", session_id)
         .tag("iccid", iccid)
-        .tag("operator", data.operator)
-        .tag("network_type", data.network_type)
-        .tag("cell_id", data.cell_id)
-        .field("rsrp", data.rsrp)
-        .field("rsrq", data.rsrq)
-        .field("sinr", data.sinr)
-        .field("latitude", None)  # TODO: Placeholder, as GPS data is not in the current model
-        .field("longitude", None)  # TODO: Placeholder, as GPS data is not in the current model
-        .field("altitude", None)  # TODO: Placeholder, as GPS data is not in the current model
-        .field("modem_temperature", data.modem_temperature)
+        .tag("operator", teltonika_data.operator)
+        .tag("network_type", teltonika_data.network_type)
+        .tag("cell_id", teltonika_data.cell_id)
+        .field("rsrp", teltonika_data.rsrp)
+        .field("rsrq", teltonika_data.rsrq)
+        .field("sinr", teltonika_data.sinr)
+        .field("tracking_area_code", teltonika_data.tracking_area_code)
+        .field("frequency_band", teltonika_data.frequency_band)
+        .field("frequency_channel", teltonika_data.frequency_channel)
+        .field("physical_cell_id", teltonika_data.physical_cell_id)
+        .field("modem_temperature", teltonika_data.modem_temperature)
     )
+
+    if gps_data is not None:
+        point = (
+            point.field("gps_fix", gps_data.gps_fix)
+            .field("latitude", gps_data.latitude)
+            .field("longitude", gps_data.longitude)
+            .field("gps_altitude", gps_data.gps_altitude)
+            .field("speed_kmh", gps_data.speed_kmh)
+            .field("satellites", gps_data.satellites)
+        )
+
+    if baro_data is not None:
+        point = (
+            point.field("pressure_hpa", baro_data.pressure_hpa)
+            .field("temperature_celsius", baro_data.temperature_celsius)
+            .field("baro_relative_altitude", baro_data.baro_relative_altitude)
+        )
+
     await write_api.write(
         bucket=get_settings().database.bucket, org=get_settings().database.org, record=point
     )

@@ -1,6 +1,9 @@
+from dataclasses import dataclass, field
 from typing import Annotated, Any
 
+from adafruit_bmp3xx import BMP3XX_I2C  # type: ignore
 from pydantic import AliasPath, BaseModel, ConfigDict, Field, model_validator
+from serial import Serial
 
 
 class SessionRequest(BaseModel):
@@ -42,6 +45,19 @@ class SessionResponse(BaseSessionResponse):
         ...,
         description="Human-readable message describing the info about the session.",
     )
+
+
+@dataclass
+class SensorsInitResponse:
+    """Response for the sensors initialization endpoint.
+
+    This dataclass should not be serialized.
+    """
+
+    gps_serial_instance: Serial | None = field(default=None)
+    bmp3xx_driver: BMP3XX_I2C | None = field(default=None)
+    p_ref_hpa: float | None = field(default=None)
+    t_ref_celsius: float | None = field(default=None)
 
 
 class HighFrequencyStateTeltonikaResponse(BaseModel):
@@ -113,7 +129,7 @@ class HighFrequencyStateTeltonikaResponse(BaseModel):
     @classmethod
     def replace_na_with_none(cls, data: Any) -> Any:
         """Fast normalization: turn 'N/A' or 'N\\/A' anywhere into None."""
-        if not isinstance(data, (dict, list)):
+        if not isinstance(data, dict | list):
             return data
 
         stack = [data]
@@ -125,7 +141,7 @@ class HighFrequencyStateTeltonikaResponse(BaseModel):
                         vv = v.strip().upper().replace("\\", "")
                         if vv in {"N/A", "NA", ""}:
                             item[k] = None
-                    elif isinstance(v, (dict, list)):
+                    elif isinstance(v, dict | list):
                         stack.append(v)
             elif isinstance(item, list):
                 for i, v in enumerate(item):
@@ -133,9 +149,24 @@ class HighFrequencyStateTeltonikaResponse(BaseModel):
                         vv = v.strip().upper().replace("\\", "")
                         if vv in {"N/A", "NA", ""}:
                             item[i] = None
-                    elif isinstance(v, (dict, list)):
+                    elif isinstance(v, dict | list):
                         stack.append(v)
         return data
+
+
+class HighFrequencyStateSensorGpsResponse(BaseModel):
+    gps_fix: bool | None = None
+    latitude: float | None = None
+    longitude: float | None = None
+    gps_altitude: float | None = None
+    speed_kmh: float | None = None
+    satellites: int | None = None
+
+
+class HighFrequencyStateSensorBaroResponse(BaseModel):
+    pressure_hpa: float | None = None
+    temperature_celsius: float | None = None
+    baro_relative_altitude: float | None = None
 
 
 class PingResult(BaseModel):
