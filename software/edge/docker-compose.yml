@@ -55,6 +55,24 @@ services:
     ports:
       - "8086:8086"
 
+  replication-setup:
+    container_name: replication-setup
+    image: influxdb:2
+    restart: "no"
+    depends_on:
+      - influxdb
+    environment:
+      - INFLUX_HOST=http://influxdb:8086
+      - INFLUX_TOKEN=${DATABASE__TOKEN}
+      - INFLUX_ORG=${DATABASE__ORG}
+      - INFLUX_BUCKET=${DATABASE__BUCKET}
+      - GROUND_INFLUX_URL=${GROUND_DATABASE__URL}
+      - GROUND_INFLUX_TOKEN=${GROUND_DATABASE__TOKEN}
+    volumes:
+      - ./scripts/setup-replication.sh:/setup-replication.sh
+    entrypoint: /bin/bash
+    command: ["/setup-replication.sh"]
+
 volumes:
   influxdb-data:
   influxdb-config:
