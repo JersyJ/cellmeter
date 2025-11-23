@@ -8,6 +8,7 @@ import httpx
 from app.config import get_settings
 from app.models import (
     HighFrequencyStateTeltonikaResponse,
+    IccidTeltonikaResponse,
     Iperf3Result,
     PingResult,
     SpeedtestResult,
@@ -15,60 +16,89 @@ from app.models import (
 from app.ssh_client import ssh_client
 
 API_TOKEN = None
+_teltonika_client: httpx.AsyncClient | None = None
+
+
+def get_teltonika_client() -> httpx.AsyncClient:
+    global _teltonika_client
+    if _teltonika_client is None:
+        _teltonika_client = httpx.AsyncClient(verify=not get_settings().debug_mode)
+    return _teltonika_client
 
 
 async def get_teltonika_token():
     """Authenticates with Teltonika and gets a session token."""
     global API_TOKEN
     try:
-        async with httpx.AsyncClient(verify=not get_settings().debug_mode) as client:
-            response = await client.post(
-                f"https://{get_settings().teltonika.ip}/api/login",
-                headers={"Content-Type": "application/json"},
-                json={
-                    "username": get_settings().teltonika.user,
-                    "password": get_settings().teltonika.password.get_secret_value(),
-                },
-                timeout=5,
-            )
-            response.raise_for_status()
-            data = response.json()
-            if data.get("success") and "data" in data and "token" in data["data"]:
-                API_TOKEN = data["data"]["token"]
-                logging.info("Successfully authenticated with Teltonika.")
+        client = get_teltonika_client()
+        response = await client.post(
+            f"https://{get_settings().teltonika.ip}/api/login",
+            headers={"Content-Type": "application/json"},
+            json={
+                "username": get_settings().teltonika.user,
+                "password": get_settings().teltonika.password.get_secret_value(),
+            },
+            timeout=5,
+        )
+        response.raise_for_status()
+        data = response.json()
+        if data.get("success") and "data" in data and "token" in data["data"]:
+            API_TOKEN = data["data"]["token"]
+            logging.info("Successfully authenticated with Teltonika.")
     except httpx.RequestError:
         logging.exception("Error authenticating with Teltonika")
 
 
-async def get_modem_status() -> HighFrequencyStateTeltonikaResponse | None:
-    """Polls the modem status endpoint for cellular and GPS data."""
+async def _teltonika_get(endpoint: str, retrying: bool = False) -> httpx.Response | None:
+    """Helper to GET from Teltonika API with token refresh (recursively retry once on 401)."""
     global API_TOKEN
     if not API_TOKEN:
         logging.info("No auth token, attempting to re-authenticate.")
         await get_teltonika_token()
         if not API_TOKEN:
             return None
-
+    client = get_teltonika_client()
     try:
-        async with httpx.AsyncClient(verify=not get_settings().debug_mode) as client:
-            response = await client.get(
-                f"https://{get_settings().teltonika.ip}/api/v1/modems/status",
-                headers={
-                    "Content-Type": "application/json",
-                    "Authorization": f"Bearer {API_TOKEN}",
-                },
-                timeout=5,
-            )
-            if response.status_code == 401:  # Token expired
-                logging.info("Token expired, re-authenticating.")
-                await get_teltonika_token()
-                return await get_modem_status()  # Retry once
-
-            response.raise_for_status()
-            return HighFrequencyStateTeltonikaResponse.model_validate_json(response.text)
+        response = await client.get(
+            f"https://{get_settings().teltonika.ip}{endpoint}",
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {API_TOKEN}",
+            },
+            timeout=5,
+        )
+        if response.status_code == 401 and not retrying:
+            logging.info("Token expired, re-authenticating.")
+            API_TOKEN = None
+            await get_teltonika_token()
+            return await _teltonika_get(endpoint, retrying=True)
+        response.raise_for_status()
+        return response
     except httpx.RequestError as e:
-        logging.exception(f"Error getting modem status: {e}")
+        logging.exception(f"Error getting {endpoint}: {e}")
         return None
+
+
+async def get_modem_status() -> HighFrequencyStateTeltonikaResponse | None:
+    """Polls the modem status endpoint for cellular and GPS data."""
+    response = await _teltonika_get("/api/v1/modems/status")
+    if response:
+        try:
+            return HighFrequencyStateTeltonikaResponse.model_validate_json(response.text)
+        except Exception as e:
+            logging.exception(f"Error parsing modem status: {e}")
+    return None
+
+
+async def get_iccid() -> str | None:
+    """Polls the modem status endpoint for ICCID."""
+    response = await _teltonika_get("/api/v1/modems/status")
+    if response:
+        try:
+            return IccidTeltonikaResponse.model_validate_json(response.text).iccid
+        except Exception as e:
+            logging.exception(f"Error parsing ICCID: {e}")
+    return None
 
 
 async def run_ssh_ping() -> PingResult | None:

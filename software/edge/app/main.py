@@ -145,8 +145,10 @@ async def start_session(session_request: SessionRequest) -> SessionResponse:
     # Generate a unique ID for this session
     session_id = f"flight-{uuid.uuid4()}"
 
-    # You would also get the active SIM ICCID here from Teltonika API
-    iccid = "8944100000000000001F"  # Placeholder
+    iccid = await poller.get_iccid()
+    if not iccid:
+        logging.warning("Could not fetch ICCID from Teltonika, using placeholder.")
+        iccid = "8944100000000000001F"  # Placeholder
 
     session_manager.start_new_session(session_id, iccid, session_request.auto_benchmarks)
 
