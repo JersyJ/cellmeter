@@ -8,7 +8,7 @@ from fastapi import BackgroundTasks, FastAPI, HTTPException
 from app import db_client, poller, session_manager
 from app.config import get_settings
 from app.models import ManualBenchmarkResponse, SessionRequest, SessionResponse
-from app.poller import run_ssh_iperf3, run_ssh_ping, run_teltonika_speedtest
+from app.poller import close_teltonika_client, run_ssh_iperf3, run_ssh_ping, run_teltonika_speedtest
 from app.sensors import baro_read, gps_read, init_sensors
 from app.ssh_client import ssh_client
 
@@ -41,6 +41,7 @@ async def lifespan(app: FastAPI):
         session_manager.end_session()
 
     await ssh_client.disconnect()
+    await close_teltonika_client()
 
 
 app = FastAPI(title="Edge Service", lifespan=lifespan, docs_url="/")
