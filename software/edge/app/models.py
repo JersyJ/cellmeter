@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Annotated, Any
 
 from adafruit_bmp3xx import BMP3XX_I2C  # type: ignore
@@ -54,10 +54,10 @@ class SensorsInitResponse:
     This dataclass should not be serialized.
     """
 
-    gps_serial_instance: Serial | None = None
-    bmp3xx_driver: BMP3XX_I2C | None = None
-    p_ref_hpa: float | None = None
-    t_ref_celsius: float | None = None
+    gps_serial_instance: Serial | None = field(default=None)
+    bmp3xx_driver: BMP3XX_I2C | None = field(default=None)
+    p_ref_hpa: float | None = field(default=None)
+    t_ref_celsius: float | None = field(default=None)
 
 
 class HighFrequencyStateTeltonikaResponse(BaseModel):

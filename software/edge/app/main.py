@@ -52,9 +52,16 @@ async def high_frequency_polling_loop():
     logging.info("High-frequency polling loop started.")
     sensors = await init_sensors()
 
-    if not sensors.gps_serial_instance:
+    gps_available = sensors.gps_serial_instance is not None
+    if not gps_available:
         logging.warning("GPS sensor not available. GPS data will not be collected.")
-    if not (sensors.bmp3xx_driver and sensors.p_ref_hpa and sensors.t_ref_celsius):
+
+    baro_available = (
+        (sensors.bmp3xx_driver is not None)
+        and (sensors.p_ref_hpa is not None)
+        and (sensors.t_ref_celsius is not None)
+    )
+    if not baro_available:
         logging.warning("Barometric sensor not available. Barometric data will not be collected.")
 
     while session_manager.is_session_active():
@@ -63,9 +70,9 @@ async def high_frequency_polling_loop():
         modem_data = await poller.get_modem_status()
         gps_data = None
         baro_data = None
-        if sensors.gps_serial_instance:
+        if gps_available:
             gps_data = await gps_read(sensors.gps_serial_instance)
-        if sensors.bmp3xx_driver and sensors.p_ref_hpa and sensors.t_ref_celsius:
+        if baro_available:
             baro_data = await baro_read(
                 sensors.bmp3xx_driver, sensors.p_ref_hpa, sensors.t_ref_celsius
             )
@@ -128,7 +135,7 @@ async def low_frequency_benchmark_loop():
     "/sessions/start",
     tags=["sessions"],
     summary="Start a new measurement session",
-    description="Starts a new measurement session and begins polling the Teltonika modem for data.",
+    description="Starts a new measurement session and begins polling the Teltonika modem for data and sensors if available.",
     response_model=SessionResponse,
 )
 async def start_session(session_request: SessionRequest) -> SessionResponse:
@@ -161,7 +168,7 @@ async def start_session(session_request: SessionRequest) -> SessionResponse:
     "/sessions/end",
     tags=["sessions"],
     summary="End the current measurement session",
-    description="Ends the current measurement session and stops polling the Teltonika modem for data.",
+    description="Ends the current measurement session and stops polling the Teltonika modem for data and sensors if available.",
     response_model=SessionResponse,
 )
 async def end_session() -> SessionResponse:

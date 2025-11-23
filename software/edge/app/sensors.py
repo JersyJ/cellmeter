@@ -32,10 +32,12 @@ async def init_sensors() -> SensorsInitResponse:
     Initialize and calibrate the GPS and barometric sensors.
 
     This function attempts to connect to the GPS (via serial port) and the barometric sensor (via I2C)
-    with infinite retry loops. It suspends execution until both sensors are successfully initialized.
+    with up to 2 retry attempts for each sensor. If initialization fails after the retries, the sensor
+    will remain uninitialized.
 
     For the barometric sensor, it performs a calibration by collecting a number of pressure and temperature
-    samples (as specified in the configuration) to compute reference values.
+    samples (as specified in the configuration) to compute reference values. If no valid samples are collected
+    during calibration, the reference values will remain unset.
     """
     gps_port = get_settings().sensors.gps_serial_port
     gps_baudrate = get_settings().sensors.gps_baudrate
@@ -47,7 +49,7 @@ async def init_sensors() -> SensorsInitResponse:
     p_ref = None
     t_ref = None
 
-    # Try to initialize GPS up to 2 times
+    # Try to initialize GPS up to 2 attempts
     for attempt in range(2):
         try:
             ser = serial.Serial(gps_port, gps_baudrate, timeout=2)
@@ -57,7 +59,7 @@ async def init_sensors() -> SensorsInitResponse:
             logging.warning(f"GPS initialization failed (attempt {attempt + 1}/2): {e}")
             await asyncio.sleep(1)
 
-    # Try to initialize Barometric sensor up to 2 times
+    # Try to initialize Barometric sensor up to 2 attempts
     for attempt in range(2):
         try:
             i2c = busio.I2C(board.SCL, board.SDA)
