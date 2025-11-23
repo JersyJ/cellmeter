@@ -8,7 +8,7 @@ from fastapi import BackgroundTasks, FastAPI, HTTPException
 from app import db_client, poller, session_manager
 from app.config import get_settings
 from app.models import ManualBenchmarkResponse, SessionRequest, SessionResponse
-from app.poller import run_ssh_iperf3, run_ssh_ping, run_teltonika_speedtest
+from app.poller import close_teltonika_client, run_ssh_iperf3, run_ssh_ping, run_teltonika_speedtest
 from app.sensors import baro_read, gps_read, init_sensors
 from app.ssh_client import ssh_client
 
@@ -41,6 +41,7 @@ async def lifespan(app: FastAPI):
         session_manager.end_session()
 
     await ssh_client.disconnect()
+    await close_teltonika_client()
 
 
 app = FastAPI(title="Edge Service", lifespan=lifespan, docs_url="/")
@@ -145,8 +146,10 @@ async def start_session(session_request: SessionRequest) -> SessionResponse:
     # Generate a unique ID for this session
     session_id = f"flight-{uuid.uuid4()}"
 
-    # You would also get the active SIM ICCID here from Teltonika API
-    iccid = "8944100000000000001F"  # Placeholder
+    iccid = await poller.get_iccid()
+    if not iccid:
+        logging.warning("Could not fetch ICCID from Teltonika, using placeholder.")
+        iccid = "8944100000000000001F"  # Placeholder
 
     session_manager.start_new_session(session_id, iccid, session_request.auto_benchmarks)
 
