@@ -17,7 +17,6 @@ services:
       - DOCKER_INFLUXDB_INIT_ORG=${DATABASE__ORG}
       - DOCKER_INFLUXDB_INIT_BUCKET=${DATABASE__BUCKET}
       - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${DATABASE__TOKEN}
-      - DOCKER_INFLUXDB_INIT_RETENTION=52w
     networks:
       - monitoring
     healthcheck:

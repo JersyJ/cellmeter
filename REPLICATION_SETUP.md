@@ -12,7 +12,7 @@ On your ground station machine:
 cd software/ground
 cp .env.example .env
 # Edit .env - set DATABASE__TOKEN to something secure
-docker-compose up -d
+docker compose up -d
 ```
 
 **Note the IP address** of this ground station machine (you'll need it for the edge station).
@@ -26,7 +26,7 @@ cd software/edge
 cp .env.example .env
 ```
 
-Edit `.env` and uncomment/set these lines:
+# Edit `.env` and uncomment/set these lines:
 ```bash
 GROUND_DATABASE__URL=http://YOUR_GROUND_STATION_IP:8086
 GROUND_DATABASE__TOKEN=testingToken123
@@ -35,29 +35,26 @@ GROUND_DATABASE__TOKEN=testingToken123
 
 Start it:
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 ### 3. Verify
 
 ```bash
-docker logs replication-setup
+docker compose logs replication-setup
 ```
 
 Should show: "Replication setup complete!"
 
 ## Access
 
-- **Grafana**: `http://GROUND_STATION_IP:3000` (admin/admin123)
+- **Grafana**: `http://GROUND_STATION_IP:3000` - Can see the dashboard without login
 - **Edge InfluxDB**: `http://EDGE_STATION_IP:8086`
 - **Ground InfluxDB**: `http://GROUND_STATION_IP:8086`
 
 ## Default Credentials
 
-- Username: `admin`
-- Password: `P@ssw0rd!`
-- Org: `cellmeter-org`
-- Bucket: `metrics`
+- You can find default credentials in .env
 
 ## Network Requirements
 
@@ -78,9 +75,9 @@ curl http://GROUND_STATION_IP:8086/health
 - Check ground station is reachable: `ping GROUND_STATION_IP`
 - Verify firewall allows port 8086
 - Check tokens match on both stations
-- View logs: `docker logs replication-setup`
+- View logs: `docker compose logs replication-setup`
 
 **No data in Grafana?**
 - Wait a few minutes for initial replication
 - Verify edge station is collecting data
-- Check replication status: `docker logs replication-setup`
+- Check replication status: `docker compose logs replication-setup`
