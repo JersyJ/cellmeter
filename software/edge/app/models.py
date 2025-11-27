@@ -60,6 +60,12 @@ class SensorsInitResponse:
     t_ref_celsius: float | None = field(default=None)
 
 
+class IccidTeltonikaResponse(BaseModel):
+    """Model for Teltonika ICCID API response."""
+
+    iccid: str | None = Field(None, validation_alias=AliasPath("data", 0, "iccid"))
+
+
 class HighFrequencyStateTeltonikaResponse(BaseModel):
     """
     A Pydantic model that uses AliasPath for declarative parsing of the

@@ -13,7 +13,7 @@ To ensure data integrity and simplify analysis, all data collected during a spec
 *   **Session Start:** A new session is initiated at the beginning of a data collection flight.
 *   **Session Identifier (`session_id`):** Upon starting, a unique identifier (e.g., a UUID or a timestamp) is generated. This `session_id` is attached to every single data point recorded during the session.
 *   **Contextual Data Logging:** At the beginning of each session, key contextual information is logged. This includes:
-    *   **Active SIM ICCID:** A request is made to the Teltonika API (`GET /api/v1/sim/status`) to retrieve the ICCID of the currently active SIM card. This allows for precise tracking of which mobile carrier is being used for the duration of the session.
+    *   **Active SIM ICCID:** A request is made to the Teltonika API to retrieve the ICCID of the currently active SIM card. This allows for precise tracking of which mobile carrier is being used for the duration of the session.
 
 ---
 
