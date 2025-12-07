@@ -34,7 +34,7 @@ services:
       - GF_SERVER_ROOT_URL=http://ground.local/
       - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin123}
-      - GF_INSTALL_PLUGINS=grafana-clock-panel
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,volkovlabs-form-panel
       - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
       - DATABASE__ORG=${DATABASE__ORG}
       - DATABASE__BUCKET=${DATABASE__BUCKET}

@@ -31,13 +31,20 @@ fi
 
 echo "Remote Org ID: $REMOTE_ORG_ID"
 
-# Delete existing remote if it exists
+# Delete existing replication with our name if it exists
+echo "Cleaning up existing replication (if any)..."
+EXISTING_REPL_ID=$(influx replication list --host "$INFLUX_HOST" --token "$INFLUX_TOKEN" --org "$INFLUX_ORG" 2>/dev/null | awk 'NR>1 && $2=="edge-to-ground" {print $1; exit}')
+if [ -n "$EXISTING_REPL_ID" ]; then
+  echo "Deleting existing replication ID: $EXISTING_REPL_ID"
+  influx replication delete --id "$EXISTING_REPL_ID" --host "$INFLUX_HOST" --token "$INFLUX_TOKEN" 2>/dev/null || true
+fi
+
+# Delete existing remote with our name if it exists
 echo "Cleaning up existing remote connection (if any)..."
-EXISTING_REMOTE_ID=$(influx remote list --host $INFLUX_HOST --token $INFLUX_TOKEN --org $INFLUX_ORG --json 2>/dev/null | awk -F'"' '/"id":/ {print $4; exit}')
+EXISTING_REMOTE_ID=$(influx remote list --host "$INFLUX_HOST" --token "$INFLUX_TOKEN" --org "$INFLUX_ORG" 2>/dev/null | awk 'NR>1 && $2=="ground-station" {print $1; exit}')
 if [ -n "$EXISTING_REMOTE_ID" ]; then
   echo "Deleting existing remote ID: $EXISTING_REMOTE_ID"
-  influx remote delete --id "$EXISTING_REMOTE_ID" \
-    --host "$INFLUX_HOST" --token "$INFLUX_TOKEN" 2>/dev/null || true
+  influx remote delete --id "$EXISTING_REMOTE_ID" --host "$INFLUX_HOST" --token "$INFLUX_TOKEN" 2>/dev/null || true
 fi
 
 # Create remote connection
@@ -49,13 +56,12 @@ influx remote create \
   --remote-org-id "$REMOTE_ORG_ID" \
   --org "$INFLUX_ORG" \
   --host "$INFLUX_HOST" \
-  --token "$INFLUX_TOKEN"
-
-# Get remote ID
-REMOTE_ID=$(influx remote list --host $INFLUX_HOST --token $INFLUX_TOKEN --org $INFLUX_ORG --json | awk -F'"' '/"id":/ {print $4; exit}')
+  --token "$INFLUX_TOKEN" >/dev/null
+# Fetch remote id from list output (table format)
+REMOTE_ID=$(influx remote list --host "$INFLUX_HOST" --token "$INFLUX_TOKEN" --org "$INFLUX_ORG" 2>/dev/null | awk 'NR>1 && $2=="ground-station" {print $1; exit}')
 
 # Get bucket ID
-BUCKET_ID=$(influx bucket list --host $INFLUX_HOST --token $INFLUX_TOKEN --org $INFLUX_ORG --name $INFLUX_BUCKET --json | awk -F'"' '/"id":/ {print $4; exit}')
+BUCKET_ID=$(influx bucket list --host "$INFLUX_HOST" --token "$INFLUX_TOKEN" --org "$INFLUX_ORG" --name "$INFLUX_BUCKET" 2>/dev/null | awk 'NR>1 {print $1; exit}')
 
 if [ -z "$REMOTE_ID" ] || [ -z "$BUCKET_ID" ]; then
   echo "Error: Could not get remote ID or bucket ID"
@@ -64,15 +70,6 @@ fi
 
 echo "Remote ID: $REMOTE_ID"
 echo "Bucket ID: $BUCKET_ID"
-
-# Delete existing replication if it exists
-echo "Cleaning up existing replication (if any)..."
-EXISTING_REPL_ID=$(influx replication list --host $INFLUX_HOST --token $INFLUX_TOKEN --org $INFLUX_ORG --json 2>/dev/null | awk -F'"' '/"id":/ {print $4; exit}')
-if [ -n "$EXISTING_REPL_ID" ]; then
-  echo "Deleting existing replication ID: $EXISTING_REPL_ID"
-  influx replication delete --id "$EXISTING_REPL_ID" \
-    --host "$INFLUX_HOST" --token "$INFLUX_TOKEN" 2>/dev/null || true
-fi
 
 # Create replication
 echo "Creating replication stream..."
@@ -90,5 +87,5 @@ echo "========================================="
 echo "Replication setup complete!"
 echo "========================================="
 echo ""
-influx replication list --host $INFLUX_HOST --token $INFLUX_TOKEN --org $INFLUX_ORG
+influx replication list --host "$INFLUX_HOST" --token "$INFLUX_TOKEN" --org "$INFLUX_ORG"
 echo ""
