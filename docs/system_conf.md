@@ -1,4 +1,4 @@
-## HW Architecture
+# HW Architecture & System Configuration
 
 ![HW architecture](architecture-hw.svg)
 
@@ -18,8 +18,8 @@ On the ground station there is a **Raspberry Pi 5**, connected to a **Alfa AWUS1
 
 ## Important
 
-- **Upper device (drone)** – Raspberry Pi 4B in client mode, LTE/5G Teltonika router, PoE power  
-- **Lower device (ground station)** – Raspberry Pi 5 with USB Wi-Fi adapter in AP mode  
+- **Upper device (drone)** – Raspberry Pi 4B in client mode, LTE/5G Teltonika router, PoE power
+- **Lower device (ground station)** – Raspberry Pi 5 with USB Wi-Fi adapter in AP mode
 
 Communication between the ground station and the drone is done via Wi-Fi 802.11ac.
 
@@ -115,24 +115,24 @@ Configuration (`/etc/hostapd/hostapd.conf`):
 # AP interface
 interface=wlan1            # interface on which hostapd runs
 driver=nl80211             # used driver
-ssid=Scandrone-Base 
-country_code=CZ 
+ssid=Scandrone-Base
+country_code=CZ
 
 # Security
 wpa=2                      # WPA2 enabled
-wpa_passphrase=... 
+wpa_passphrase=...
 wpa_key_mgmt=WPA-PSK
 rsn_pairwise=CCMP          # AES (CCMP) encryption
-auth_algs=1               
-wds_sta=1                  
+auth_algs=1
+wds_sta=1
 
 # Radio configuration on 5 GHz
 hw_mode=a                  # 5 GHz band
 channel=44                 # used channel
 ieee80211ac=1              # 802.11ac standard
-vht_oper_centr_freq_seg0_idx=46 
+vht_oper_centr_freq_seg0_idx=46
 ht_capab=[HT40+][SHORT-GI-40][TX-STBC][RX-STBC1]
-wmm_enabled=1    
+wmm_enabled=1
 ```
 
 ---
@@ -168,4 +168,3 @@ Gateway=10.0.1.1 # gateway to the ground station network
 ### Drone
 
 - `10.0.0.0/24 via 10.0.1.1 dev wlan0` – static route to the internal ground station network via interface on the ground station (10.0.1.1)
-
