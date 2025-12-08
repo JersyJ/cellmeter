@@ -37,7 +37,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "InfluxDB"
+        "uid": "${DS_INFLUXDB}"
       },
       "fieldConfig": {
         "defaults": {
@@ -101,10 +101,7 @@
       "id": 2,
       "options": {
         "legend": {
-          "calcs": [
-            "last",
-            "mean"
-          ],
+          "calcs": ["last", "mean"],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -118,7 +115,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "InfluxDB"
+            "uid": "${DS_INFLUXDB}"
           },
           "query": "from(bucket: \"metrics\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"state_metrics\")\n  |> filter(fn: (r) => r._field == \"rsrp\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
           "refId": "A"
@@ -130,7 +127,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "InfluxDB"
+        "uid": "${DS_INFLUXDB}"
       },
       "fieldConfig": {
         "defaults": {
@@ -192,10 +189,7 @@
       "id": 3,
       "options": {
         "legend": {
-          "calcs": [
-            "last",
-            "mean"
-          ],
+          "calcs": ["last", "mean"],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -209,7 +203,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "InfluxDB"
+            "uid": "${DS_INFLUXDB}"
           },
           "query": "from(bucket: \"metrics\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"state_metrics\")\n  |> filter(fn: (r) => r._field == \"rsrq\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
           "refId": "A"
@@ -221,7 +215,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "InfluxDB"
+        "uid": "${DS_INFLUXDB}"
       },
       "fieldConfig": {
         "defaults": {
@@ -283,10 +277,7 @@
       "id": 4,
       "options": {
         "legend": {
-          "calcs": [
-            "last",
-            "mean"
-          ],
+          "calcs": ["last", "mean"],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -300,7 +291,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "InfluxDB"
+            "uid": "${DS_INFLUXDB}"
           },
           "query": "from(bucket: \"metrics\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"state_metrics\")\n  |> filter(fn: (r) => r._field == \"sinr\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
           "refId": "A"
@@ -325,7 +316,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "InfluxDB"
+        "uid": "${DS_INFLUXDB}"
       },
       "fieldConfig": {
         "defaults": {
@@ -432,7 +423,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "InfluxDB"
+            "uid": "${DS_INFLUXDB}"
           },
           "query": "from(bucket: \"metrics\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"state_metrics\")\n  |> filter(fn: (r) => r._field == \"latitude\" or r._field == \"longitude\")\n  |> pivot(rowKey:[\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")",
           "refId": "A"
@@ -444,7 +435,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "InfluxDB"
+        "uid": "${DS_INFLUXDB}"
       },
       "fieldConfig": {
         "defaults": {
@@ -531,11 +522,7 @@
       "id": 7,
       "options": {
         "legend": {
-          "calcs": [
-            "last",
-            "mean",
-            "max"
-          ],
+          "calcs": ["last", "mean", "max"],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -549,7 +536,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "InfluxDB"
+            "uid": "${DS_INFLUXDB}"
           },
           "query": "from(bucket: \"metrics\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"state_metrics\")\n  |> filter(fn: (r) => r._field == \"gps_altitude\" or r._field == \"baro_relative_altitude\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
           "refId": "A"
@@ -574,7 +561,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "InfluxDB"
+        "uid": "${DS_INFLUXDB}"
       },
       "fieldConfig": {
         "defaults": {
@@ -636,11 +623,7 @@
       "id": 9,
       "options": {
         "legend": {
-          "calcs": [
-            "last",
-            "mean",
-            "max"
-          ],
+          "calcs": ["last", "mean", "max"],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -654,7 +637,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "InfluxDB"
+            "uid": "${DS_INFLUXDB}"
           },
           "query": "from(bucket: \"metrics\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"state_metrics\")\n  |> filter(fn: (r) => r._field == \"speed_kmh\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
           "refId": "A"
@@ -666,7 +649,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "InfluxDB"
+        "uid": "${DS_INFLUXDB}"
       },
       "fieldConfig": {
         "defaults": {
@@ -710,9 +693,7 @@
         "orientation": "auto",
         "reduceOptions": {
           "values": false,
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": ["lastNotNull"],
           "fields": ""
         },
         "showThresholdLabels": false,
@@ -724,7 +705,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "InfluxDB"
+            "uid": "${DS_INFLUXDB}"
           },
           "query": "from(bucket: \"metrics\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"state_metrics\")\n  |> filter(fn: (r) => r._field == \"satellites\")\n  |> last()",
           "refId": "A"
@@ -736,7 +717,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "InfluxDB"
+        "uid": "${DS_INFLUXDB}"
       },
       "fieldConfig": {
         "defaults": {
@@ -747,7 +728,7 @@
             "axisBorderShow": false,
             "axisCenteredZero": false,
             "axisColorMode": "text",
-            "axisLabel": "Temperature (\u00b0C)",
+            "axisLabel": "Temperature (°C)",
             "axisPlacement": "auto",
             "barAlignment": 0,
             "drawStyle": "line",
@@ -823,10 +804,7 @@
       "id": 11,
       "options": {
         "legend": {
-          "calcs": [
-            "last",
-            "mean"
-          ],
+          "calcs": ["last", "mean"],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -840,7 +818,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "InfluxDB"
+            "uid": "${DS_INFLUXDB}"
           },
           "query": "from(bucket: \"metrics\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"state_metrics\")\n  |> filter(fn: (r) => r._field == \"modem_temperature\" or r._field == \"temperature_celsius\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
           "refId": "A"
@@ -852,7 +830,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "InfluxDB"
+        "uid": "${DS_INFLUXDB}"
       },
       "fieldConfig": {
         "defaults": {
@@ -914,10 +892,7 @@
       "id": 12,
       "options": {
         "legend": {
-          "calcs": [
-            "last",
-            "mean"
-          ],
+          "calcs": ["last", "mean"],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -931,7 +906,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "InfluxDB"
+            "uid": "${DS_INFLUXDB}"
           },
           "query": "from(bucket: \"metrics\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"state_metrics\")\n  |> filter(fn: (r) => r._field == \"pressure_hpa\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
           "refId": "A"
@@ -943,7 +918,7 @@
     {
       "collapsed": false,
       "gridPos": {
-        "h": 10,
+        "h": 1,
         "w": 24,
         "x": 0,
         "y": 29
@@ -956,7 +931,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "InfluxDB"
+        "uid": "${DS_INFLUXDB}"
       },
       "fieldConfig": {
         "defaults": {
@@ -1057,11 +1032,7 @@
       "id": 14,
       "options": {
         "legend": {
-          "calcs": [
-            "last",
-            "mean",
-            "max"
-          ],
+          "calcs": ["last", "mean", "max"],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -1075,7 +1046,7 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "InfluxDB"
+            "uid": "${DS_INFLUXDB}"
           },
           "query": "from(bucket: \"metrics\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"performance_benchmarks\")\n  |> filter(fn: (r) => r._field == \"upload_mbps\" or r._field == \"download_mbps\")",
           "refId": "A"
@@ -1087,7 +1058,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "InfluxDB"
+        "uid": "${DS_INFLUXDB}"
       },
       "fieldConfig": {
         "defaults": {
@@ -1141,7 +1112,7 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 10,
+        "h": 8,
         "w": 12,
         "x": 12,
         "y": 30
@@ -1149,11 +1120,7 @@
       "id": 15,
       "options": {
         "legend": {
-          "calcs": [
-            "last",
-            "mean",
-            "max"
-          ],
+          "calcs": ["last", "mean", "max"],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -1167,9 +1134,9 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "InfluxDB"
+            "uid": "${DS_INFLUXDB}"
           },
-          "query": "from(bucket: \"metrics\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"performance_benchmarks\")\n  |> filter(fn: (r) => r._field == \"rtt_avg_ms\" or r._field == \"jitter_ms\")",
+          "query": "from(bucket: \"metrics\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"performance_benchmarks\")\n  |> filter(fn: (r) => r._field == \"ping_rtt_avg_ms\" or r._field == \"jitter_ms\")",
           "refId": "A"
         }
       ],
@@ -1179,7 +1146,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "InfluxDB"
+        "uid": "${DS_INFLUXDB}"
       },
       "fieldConfig": {
         "defaults": {
@@ -1243,7 +1210,7 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 10,
+        "h": 8,
         "w": 12,
         "x": 0,
         "y": 38
@@ -1251,11 +1218,7 @@
       "id": 16,
       "options": {
         "legend": {
-          "calcs": [
-            "last",
-            "mean",
-            "max"
-          ],
+          "calcs": ["last", "mean", "max"],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -1269,9 +1232,9 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "InfluxDB"
+            "uid": "${DS_INFLUXDB}"
           },
-          "query": "from(bucket: \"metrics\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"performance_benchmarks\")\n  |> filter(fn: (r) => r._field == \"packet_loss_pct\")",
+          "query": "from(bucket: \"metrics\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"performance_benchmarks\")\n  |> filter(fn: (r) => r._field == \"ping_packet_loss_pct\")",
           "refId": "A"
         }
       ],
@@ -1281,7 +1244,7 @@
     {
       "datasource": {
         "type": "influxdb",
-        "uid": "InfluxDB"
+        "uid": "${DS_INFLUXDB}"
       },
       "fieldConfig": {
         "defaults": {
@@ -1317,9 +1280,7 @@
         "percentChangeColorMode": "standard",
         "reduceOptions": {
           "values": false,
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": ["lastNotNull"],
           "fields": ""
         },
         "showPercentChange": false,
@@ -1331,685 +1292,21 @@
         {
           "datasource": {
             "type": "influxdb",
-            "uid": "InfluxDB"
+            "uid": "${DS_INFLUXDB}"
           },
-          "query": "from(bucket: \"metrics\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"state_metrics\")\n  |> last()\n  |> keep(columns:[\"_time\",\"cell_id\",\"network_type\",\"operator\",\"tracking_area_code\",\"frequency_channel\",\"frequency_band\",\"physical_cell_id\"])\n  |> group(columns: [])",
+          "query": "from(bucket: \"metrics\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"state_metrics\")\n  |> filter(fn: (r) => r._field == \"cell_id\" or r._field == \"network_type\" or r._field == \"operator\")\n  |> last()\n  |> group()",
           "refId": "A"
         }
       ],
       "title": "Network Info",
       "type": "stat"
-    },
-    {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 46
-      },
-      "id": 18,
-      "panels": [],
-      "title": "Session Controls",
-      "type": "row"
-    },
-    {
-      "datasource": {
-        "type": "datasource",
-        "uid": "grafana"
-      },
-      "gridPos": {
-        "h": 7,
-        "w": 8,
-        "x": 0,
-        "y": 47
-      },
-      "id": 19,
-      "options": {
-        "buttonGroup": {
-          "orientation": "center",
-          "size": "lg"
-        },
-        "confirmModal": {
-          "body": "Please confirm to update changed values",
-          "cancel": "Cancel",
-          "columns": {
-            "include": [
-              "name",
-              "oldValue",
-              "newValue"
-            ],
-            "name": "Label",
-            "newValue": "New Value",
-            "oldValue": "Old Value"
-          },
-          "confirm": "Confirm",
-          "elementDisplayMode": "modified",
-          "title": "Confirm update request"
-        },
-        "elementValueChanged": "",
-        "elements": [
-          {
-            "id": "auto_benchmarks",
-            "labelWidth": 10,
-            "title": "Auto benchmarks",
-            "tooltip": "Enable automatic benchmarks during the session",
-            "type": "boolean",
-            "uid": "26f28d0c-5bff-44a0-bc0a-696fd994414d",
-            "unit": "",
-            "value": false
-          }
-        ],
-        "initial": {
-          "code": "context.panel.enableSubmit();",
-          "contentType": "application/json",
-          "getPayload": "return {}",
-          "highlight": false,
-          "highlightColor": "red",
-          "method": "-",
-          "payload": {},
-          "payloadMode": "all",
-          "url": ""
-        },
-        "layout": {
-          "orientation": "horizontal",
-          "padding": 10,
-          "sectionVariant": "default",
-          "variant": "single"
-        },
-        "reset": {
-          "backgroundColor": "",
-          "foregroundColor": "",
-          "icon": "process",
-          "text": "Reset",
-          "variant": "hidden"
-        },
-        "resetAction": {
-          "code": "",
-          "confirm": false,
-          "getPayload": "return {}",
-          "mode": "initial",
-          "payload": {}
-        },
-        "saveDefault": {
-          "icon": "save",
-          "text": "Save Default",
-          "variant": "hidden"
-        },
-        "submit": {
-          "backgroundColor": "",
-          "foregroundColor": "",
-          "icon": "play",
-          "text": "Start Session",
-          "variant": "primary"
-        },
-        "sync": false,
-        "update": {
-          "code": "if (context.panel.response?.ok) { context.grafana.notifySuccess(['Session', 'Started']); } else { context.grafana.notifyError(['Session', 'Start failed']); }\ncontext.panel.enableSubmit();",
-          "confirm": false,
-          "contentType": "application/json",
-          "getPayload": "const auto = context.panel.elements.find((el) => el.id === 'auto_benchmarks');\nreturn { auto_benchmarks: Boolean(auto?.value) };",
-          "header": [],
-          "method": "POST",
-          "payload": {},
-          "payloadMode": "custom",
-          "url": "${edge_api_base:raw}/sessions/start"
-        },
-        "updateEnabled": "manual"
-      },
-      "pluginVersion": "11.4.0",
-      "targets": [
-        {
-          "refId": "A"
-        }
-      ],
-      "title": "Start Session",
-      "type": "volkovlabs-form-panel"
-    },
-    {
-      "datasource": {
-        "type": "datasource",
-        "uid": "grafana"
-      },
-      "gridPos": {
-        "h": 7,
-        "w": 8,
-        "x": 8,
-        "y": 47
-      },
-      "id": 20,
-      "options": {
-        "buttonGroup": {
-          "orientation": "center",
-          "size": "lg"
-        },
-        "confirmModal": {
-          "body": "Please confirm to update changed values",
-          "cancel": "Cancel",
-          "columns": {
-            "include": [
-              "name",
-              "oldValue",
-              "newValue"
-            ],
-            "name": "Label",
-            "newValue": "New Value",
-            "oldValue": "Old Value"
-          },
-          "confirm": "Confirm",
-          "elementDisplayMode": "modified",
-          "title": "Confirm update request"
-        },
-        "elementValueChanged": "",
-        "elements": [
-          {
-            "hidden": true,
-            "id": "placeholder",
-            "labelWidth": 10,
-            "title": "Placeholder",
-            "tooltip": "",
-            "type": "string",
-            "uid": "b83f5f22-f2d4-45e8-8e08-6dc3117a5f4c",
-            "unit": "",
-            "value": ""
-          }
-        ],
-        "initial": {
-          "code": "context.panel.enableSubmit();",
-          "contentType": "application/json",
-          "getPayload": "return {}",
-          "highlight": false,
-          "highlightColor": "red",
-          "method": "-",
-          "payload": {},
-          "payloadMode": "all",
-          "url": ""
-        },
-        "layout": {
-          "orientation": "horizontal",
-          "padding": 10,
-          "sectionVariant": "default",
-          "variant": "single"
-        },
-        "reset": {
-          "backgroundColor": "",
-          "foregroundColor": "",
-          "icon": "process",
-          "text": "Reset",
-          "variant": "hidden"
-        },
-        "resetAction": {
-          "code": "",
-          "confirm": false,
-          "getPayload": "return {}",
-          "mode": "initial",
-          "payload": {}
-        },
-        "saveDefault": {
-          "icon": "save",
-          "text": "Save Default",
-          "variant": "hidden"
-        },
-        "submit": {
-          "backgroundColor": "",
-          "foregroundColor": "",
-          "icon": "stop",
-          "text": "End Session",
-          "variant": "secondary"
-        },
-        "sync": false,
-        "update": {
-          "code": "if (context.panel.response?.ok) { context.grafana.notifySuccess(['Session', 'Ended']); } else { context.grafana.notifyError(['Session', 'End failed']); }",
-          "confirm": false,
-          "contentType": "application/json",
-          "getPayload": "return {}",
-          "header": [],
-          "method": "POST",
-          "payload": {},
-          "payloadMode": "custom",
-          "url": "${edge_api_base:raw}/sessions/end"
-        },
-        "updateEnabled": "manual"
-      },
-      "pluginVersion": "11.4.0",
-      "targets": [
-        {
-          "refId": "A"
-        }
-      ],
-      "title": "End Session",
-      "type": "volkovlabs-form-panel"
-    },
-    {
-      "datasource": {
-        "type": "datasource",
-        "uid": "grafana"
-      },
-      "gridPos": {
-        "h": 7,
-        "w": 8,
-        "x": 16,
-        "y": 47
-      },
-      "id": 21,
-      "options": {
-        "buttonGroup": {
-          "orientation": "center",
-          "size": "lg"
-        },
-        "confirmModal": {
-          "body": "Please confirm to update changed values",
-          "cancel": "Cancel",
-          "columns": {
-            "include": [
-              "name",
-              "oldValue",
-              "newValue"
-            ],
-            "name": "Label",
-            "newValue": "New Value",
-            "oldValue": "Old Value"
-          },
-          "confirm": "Confirm",
-          "elementDisplayMode": "modified",
-          "title": "Confirm update request"
-        },
-        "elementValueChanged": "",
-        "elements": [
-          {
-            "hidden": true,
-            "id": "placeholder",
-            "labelWidth": 10,
-            "title": "Placeholder",
-            "tooltip": "",
-            "type": "string",
-            "uid": "bbbdab14-7fcf-4f6d-8ddb-8d5a1a53b897",
-            "unit": "",
-            "value": ""
-          }
-        ],
-        "initial": {
-          "code": "context.panel.enableSubmit();",
-          "contentType": "application/json",
-          "getPayload": "return {}",
-          "highlight": false,
-          "highlightColor": "red",
-          "method": "-",
-          "payload": {},
-          "payloadMode": "all",
-          "url": ""
-        },
-        "layout": {
-          "orientation": "horizontal",
-          "padding": 10,
-          "sectionVariant": "default",
-          "variant": "single"
-        },
-        "reset": {
-          "backgroundColor": "",
-          "foregroundColor": "",
-          "icon": "process",
-          "text": "Reset",
-          "variant": "hidden"
-        },
-        "resetAction": {
-          "code": "",
-          "confirm": false,
-          "getPayload": "return {}",
-          "mode": "initial",
-          "payload": {}
-        },
-        "saveDefault": {
-          "icon": "save",
-          "text": "Save Default",
-          "variant": "hidden"
-        },
-        "submit": {
-          "backgroundColor": "",
-          "foregroundColor": "",
-          "icon": "bolt",
-          "text": "Run Benchmarks",
-          "variant": "primary"
-        },
-        "sync": false,
-        "update": {
-          "code": "if (context.panel.response?.ok) { context.grafana.notifySuccess(['Benchmarks', 'Triggered']); } else { context.grafana.notifyError(['Benchmarks', 'Trigger failed']); }",
-          "confirm": true,
-          "contentType": "application/json",
-          "getPayload": "return {}",
-          "header": [],
-          "method": "POST",
-          "payload": {},
-          "payloadMode": "custom",
-          "url": "${edge_api_base:raw}/benchmarks/run"
-        },
-        "updateEnabled": "manual"
-      },
-      "pluginVersion": "11.4.0",
-      "targets": [
-        {
-          "refId": "A"
-        }
-      ],
-      "title": "Run Manual Benchmarks",
-      "type": "volkovlabs-form-panel"
-    },
-    {
-      "datasource": {
-        "type": "datasource",
-        "uid": "grafana"
-      },
-      "gridPos": {
-        "h": 14,
-        "w": 24,
-        "x": 0,
-        "y": 54
-      },
-      "id": 22,
-      "options": {
-        "buttonGroup": {
-          "orientation": "center",
-          "size": "md"
-        },
-        "confirmModal": {
-          "body": "Please confirm to update changed values",
-          "cancel": "Cancel",
-          "columns": {
-            "include": [
-              "name",
-              "oldValue",
-              "newValue"
-            ],
-            "name": "Label",
-            "newValue": "New Value",
-            "oldValue": "Old Value"
-          },
-          "confirm": "Confirm",
-          "elementDisplayMode": "modified",
-          "title": "Confirm update request"
-        },
-        "elementValueChanged": "",
-        "elements": [
-          {
-            "hidden": false,
-            "id": "message",
-            "labelWidth": 10,
-            "title": "Message",
-            "tooltip": "",
-            "type": "disabled",
-            "uid": "8674cdc5-8db5-4b0a-ba9b-7c1f29ade986",
-            "unit": "",
-            "value": ""
-          },
-          {
-            "hidden": false,
-            "id": "session_id",
-            "labelWidth": 10,
-            "title": "Session ID",
-            "tooltip": "",
-            "type": "disabled",
-            "uid": "326828f1-9166-4f12-af4c-97224e858e77",
-            "unit": "",
-            "value": ""
-          },
-          {
-            "hidden": false,
-            "id": "iccid",
-            "labelWidth": 10,
-            "title": "ICCID",
-            "tooltip": "",
-            "type": "disabled",
-            "uid": "bbe0478f-0769-4089-a34f-e8a7f7cca606",
-            "unit": "",
-            "value": ""
-          },
-          {
-            "hidden": false,
-            "id": "benchmark_in_progress",
-            "labelWidth": 10,
-            "title": "Benchmarks Running",
-            "tooltip": "",
-            "type": "disabled",
-            "uid": "4bc72cb0-ff04-45a8-a2c3-762d50802a7c",
-            "unit": "",
-            "value": ""
-          },
-          {
-            "hidden": false,
-            "id": "auto_benchmarks",
-            "labelWidth": 10,
-            "title": "Auto Benchmarks",
-            "tooltip": "",
-            "type": "disabled",
-            "uid": "ba08bcc1-b3b6-403b-9ae2-c3a7768e437d",
-            "unit": "",
-            "value": ""
-          },
-          {
-            "backgroundColor": "",
-            "buttonLabel": "Refresh",
-            "customCode": "await context.panel.initialRequest();",
-            "foregroundColor": "",
-            "id": "refresh",
-            "labelWidth": 10,
-            "section": "",
-            "show": "form",
-            "size": "sm",
-            "title": "",
-            "tooltip": "",
-            "type": "button",
-            "uid": "5064ade5-9a9f-404e-b38e-4515dc6da902",
-            "unit": "",
-            "value": "",
-            "variant": "secondary",
-            "disabled": false
-          }
-        ],
-        "initial": {
-          "code": "",
-          "contentType": "application/json",
-          "getPayload": "return {}",
-          "highlight": false,
-          "highlightColor": "red",
-          "method": "GET",
-          "payload": {},
-          "payloadMode": "all",
-          "url": "${edge_api_base:raw}/sessions/status"
-        },
-        "layout": {
-          "orientation": "horizontal",
-          "padding": 10,
-          "sectionVariant": "default",
-          "variant": "single"
-        },
-        "reset": {
-          "backgroundColor": "",
-          "foregroundColor": "",
-          "icon": "process",
-          "text": "Reset",
-          "variant": "hidden"
-        },
-        "resetAction": {
-          "code": "",
-          "confirm": false,
-          "getPayload": "return {}",
-          "mode": "initial",
-          "payload": {}
-        },
-        "saveDefault": {
-          "icon": "save",
-          "text": "Save Default",
-          "variant": "hidden"
-        },
-        "submit": {
-          "backgroundColor": "",
-          "foregroundColor": "",
-          "icon": "",
-          "text": "",
-          "variant": "hidden"
-        },
-        "sync": true,
-        "update": {
-          "code": "",
-          "confirm": false,
-          "contentType": "application/json",
-          "getPayload": "return {}",
-          "header": [],
-          "method": "-",
-          "payload": {},
-          "payloadMode": "all",
-          "url": ""
-        },
-        "updateEnabled": "manual"
-      },
-      "pluginVersion": "11.4.0",
-      "targets": [
-        {
-          "refId": "A"
-        }
-      ],
-      "title": "Session Status",
-      "type": "volkovlabs-form-panel"
-    },
-    {
-      "collapsed": false,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 68
-      },
-      "id": 23,
-      "panels": [],
-      "title": "Ground Wi-Fi",
-      "type": "row"
-    },
-    {
-      "datasource": {
-        "type": "influxdb",
-        "uid": "InfluxDB"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "yellow",
-                "value": -75
-              },
-              {
-                "color": "green",
-                "value": -60
-              }
-            ]
-          },
-          "unit": "dBm",
-          "custom": {
-            "drawStyle": "line",
-            "lineWidth": 2,
-            "fillOpacity": 20,
-            "showPoints": "auto",
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "axisPlacement": "auto",
-            "axisLabel": "RSSI (dBm)",
-            "axisCenteredZero": false,
-            "axisBorderShow": false,
-            "barAlignment": 0,
-            "gradientMode": "none",
-            "pointSize": 4,
-            "thresholdsStyle": {
-              "mode": "off"
-            },
-            "hideFrom": {
-              "tooltip": false,
-              "viz": false,
-              "legend": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "scaleDistribution": {
-              "type": "linear"
-            }
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 69
-      },
-      "id": 24,
-      "options": {
-        "legend": {
-          "calcs": [
-            "last"
-          ],
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "targets": [
-        {
-          "datasource": {
-            "type": "influxdb",
-            "uid": "InfluxDB"
-          },
-          "query": "from(bucket: \"metrics\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"ground_wifi\")\n  |> filter(fn: (r) => r._field == \"rssi_dbm\")\n  |> aggregateWindow(every: v.windowPeriod, fn: mean, createEmpty: false)",
-          "refId": "A"
-        }
-      ],
-      "title": "Ground Wi-Fi RSSI",
-      "type": "timeseries"
     }
   ],
   "refresh": "5s",
   "schemaVersion": 39,
-  "tags": [
-    "cellmeter",
-    "drone",
-    "telemetry"
-  ],
+  "tags": ["cellmeter", "drone", "telemetry"],
   "templating": {
-    "list": [
-      {
-        "name": "edge_api_base",
-        "type": "constant",
-        "label": "Edge API",
-        "query": "http://10.0.2.1:8000",
-        "current": {
-          "text": "http://10.0.2.1:8000",
-          "value": "http://10.0.2.1:8000"
-        },
-        "options": [
-          {
-            "text": "http://10.0.2.1:8000",
-            "value": "http://10.0.2.1:8000",
-            "selected": true
-          }
-        ],
-        "hide": 0
-      }
-    ]
+    "list": []
   },
   "time": {
     "from": "now-6h",
